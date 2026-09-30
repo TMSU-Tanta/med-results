@@ -10,7 +10,7 @@
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    :root { --primary: #2563eb; --bg-body: #f1f5f9; --card-bg: #ffffff; --text-dark: #0f172a; --text-muted: #64748b; --border-light: #e2e8f0; --gold: #f59e0b; --danger: #ef4444; --success: #10b981; --theme-color: #2563eb; }
+    :root { --primary: #2563eb; --bg-body: #f1f5f9; --card-bg: #ffffff; --text-dark: #0f172a; --text-muted: #64748b; --border-light: #e2e8f0; --gold: #f59e0b; --danger: #dc2626; --success: #10b981; --theme-color: #2563eb; }
     body.dark-theme { --primary: #3b82f6; --bg-body: #0f172a; --card-bg: #1e293b; --text-dark: #f8fafc; --text-muted: #94a3b8; --border-light: #334155; --theme-color: #3b82f6; }
     
     body { font-family: 'Noto Kufi Arabic', sans-serif; background-color: var(--bg-body); color: var(--text-dark); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 15px 15px 80px 15px; transition: background-color 0.3s, color 0.3s; }
@@ -38,7 +38,6 @@
     .btn-main:active { transform: scale(0.97); } 
     .btn-main:disabled { background: var(--text-muted); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
 
-    /* Skeleton Loader */
     .skeleton-container { display: none; width: 100%; }
     .skeleton-card { background: var(--card-bg); border-radius: 24px; padding: 25px; border: 1px solid var(--border-light); }
     .skeleton { background: linear-gradient(110deg, var(--border-light) 8%, var(--bg-body) 18%, var(--border-light) 33%); background-size: 200% 100%; animation: 1.5s shine linear infinite; border-radius: 10px; }
@@ -85,7 +84,6 @@
 
     .disclaimer { margin: 0 20px 20px 20px; padding: 15px; background: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 14px; text-align: center; font-size: 12px; font-weight: 700; color: var(--danger); line-height: 1.6; }
 
-    /* الزر العائم FAB المجمع */
     .fab-container { position: fixed; bottom: 20px; right: 20px; z-index: 99; display: flex; flex-direction: column; align-items: center; gap: 10px; }
     .fab-menu { display: flex; flex-direction: column; gap: 10px; opacity: 0; transform: translateY(20px); pointer-events: none; transition: all 0.3s ease; }
     .fab-menu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
@@ -93,6 +91,18 @@
     .fab-btn:active { transform: scale(0.9); }
     .fab-main { width: 55px; height: 55px; border-radius: 50%; background: var(--theme-color); color: #fff; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; transition: transform 0.3s; }
     .fab-main.open { transform: rotate(45deg); }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 999; }
+    .modal-card { background: var(--card-bg); width: 90%; max-width: 400px; padding: 25px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+    .modal-card h3 { margin-bottom: 15px; font-weight: 800; color: var(--text-dark); }
+    .modal-card textarea { width: 100%; height: 100px; padding: 15px; border-radius: 12px; border: 1px solid var(--border-light); background: var(--bg-body); font-family: inherit; font-size: 14px; margin-bottom: 15px; resize: none; color: var(--text-dark);}
+    .modal-card textarea:focus { outline: none; border-color: var(--primary); }
+
+    @media print {
+      body, .result-container { background: #fff !important; color: #000 !important; border: none !important; box-shadow: none !important; }
+      .top-bar, .header-section, .chart-wrapper, .fab-container, .disclaimer, .screen:not(#screen-result) { display: none !important; }
+      .result-container::after { content: "مستخرج من بوابة النتائج - لا يعتد به كمستند رسمي"; display: block; text-align: center; font-size: 12px; margin-top: 30px; font-weight: bold; }
+    }
   </style>
 </head>
 <body>
@@ -100,6 +110,8 @@
 <div class="wrapper">
   <div class="fab-container" id="fabContainer" style="display:none;">
     <div class="fab-menu" id="fabMenu">
+      <button class="fab-btn" onclick="openSupport()" title="الدعم الفني"><i class="fa-solid fa-headset"></i></button>
+      <button class="fab-btn" onclick="window.print()" title="طباعة"><i class="fa-solid fa-print"></i></button>
       <button class="fab-btn" onclick="shareResult()" title="مشاركة"><i class="fa-solid fa-share-nodes"></i></button>
       <button class="fab-btn" onclick="toggleTheme()" title="الوضع الليلي"><i class="fa-solid fa-moon"></i></button>
       <button class="fab-btn" onclick="logout()" title="خروج" style="color:var(--danger)"><i class="fa-solid fa-right-from-bracket"></i></button>
@@ -112,7 +124,6 @@
     <h1>بوابة نتائج طب طنطا</h1>
   </header>
 
-  <!-- شاشة 1: الرقم القومي -->
   <div id="screen-id" class="screen active auth-card">
     <div class="input-group">
       <i class="fa-regular fa-id-card input-icon"></i>
@@ -123,7 +134,6 @@
     <div id="error-1" class="error-msg"></div>
   </div>
 
-  <!-- الـ Skeleton Loader -->
   <div id="skeletonLoader" class="skeleton-container">
     <div class="skeleton-card">
       <div class="skeleton sk-avatar"></div>
@@ -133,7 +143,6 @@
     </div>
   </div>
 
-  <!-- شاشة 2: المصادقة -->
   <div id="screen-auth" class="screen auth-card">
     <h3 id="authTitle" style="text-align:center; font-size: 18px; margin-bottom: 15px; font-weight: 900;">مصادقة الدخول</h3>
     <div id="authInfo" class="info-msg"></div>
@@ -151,22 +160,44 @@
     <div id="error-2" class="error-msg"></div>
   </div>
 
-  <!-- **تمت إضافة شاشة الأدمن هنا** -->
-  <div id="screen-admin" class="screen auth-card">
-    <h3 style="text-align:center; color:var(--danger); font-weight:900; margin-bottom:15px;">لوحة تحكم المشرف</h3>
+  <!-- شاشة الإدارة 1: طلب الباسورد (فيها علامة العين) -->
+  <div id="screen-admin-login" class="screen auth-card">
+    <h3 style="text-align:center; color:var(--danger); font-weight:900; margin-bottom:15px;">تسجيل دخول المشرف</h3>
     <div class="input-group">
       <i class="fa-solid fa-user-shield input-icon"></i>
       <input type="password" id="adminPassword" placeholder="كلمة مرور الإدارة">
+      <i class="fa-regular fa-eye toggle-pass" onclick="togglePass(this, 'adminPassword')"></i>
     </div>
-    <div class="input-group">
-      <i class="fa-solid fa-eraser input-icon"></i>
-      <input type="text" id="adminResetNid" placeholder="الرقم القومي لفك الحظر/المسح">
-    </div>
-    <button class="btn-main" style="background:var(--danger)" onclick="adminReset()">تنفيذ إجراء <i class="fa-solid fa-triangle-exclamation"></i></button>
-    <div id="error-admin" class="error-msg"></div>
+    <button class="btn-main" style="background:var(--danger)" onclick="adminLogin()">دخول للوحة التحكم</button>
+    <div id="error-admin-login" class="error-msg"></div>
   </div>
 
-  <!-- شاشة 3: النتيجة -->
+  <!-- شاشة الإدارة 2: الداشبورد (لوحة التحكم والإحصائيات) -->
+  <div id="screen-admin-dashboard" class="screen result-container" style="border-color: var(--danger);">
+    <div class="student-profile-card" style="background: linear-gradient(135deg, var(--danger), #0f172a); border-bottom-color: #fca5a5;">
+      <div class="profile-avatar"><i class="fa-solid fa-user-gear"></i></div>
+      <h2>لوحة تحكم النظام</h2>
+    </div>
+
+    <!-- الإحصائيات الفخمة للأدمن -->
+    <div class="mini-stats" style="margin-top:25px;">
+      <div class="m-stat"><span class="title">إجمالي الطلبة</span><div class="val" id="adminStatTotal">-</div></div>
+      <div class="m-stat"><span class="title">مسجلين حسابات</span><div class="val" id="adminStatReg">-</div></div>
+      <div class="m-stat" style="grid-column: span 2;"><span class="title">شكاوى الدعم الفني</span><div class="val" id="adminStatRep" style="color:var(--danger);">-</div></div>
+    </div>
+
+    <!-- أداة فك الحظر -->
+    <div class="sems-wrapper" style="border-top: 1px dashed var(--border-light); margin-top:20px;">
+      <h3 class="section-head" style="color:var(--danger);"><i class="fa-solid fa-eraser"></i> إعادة ضبط طالب</h3>
+      <div class="input-group">
+        <i class="fa-solid fa-id-card input-icon"></i>
+        <input type="text" id="adminResetNid" placeholder="الرقم القومي لفك الحظر/المسح">
+      </div>
+      <button class="btn-main" style="background:var(--danger)" onclick="adminReset()">تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i></button>
+      <div id="error-admin-action" class="error-msg" style="margin-top:15px;"></div>
+    </div>
+  </div>
+
   <div id="screen-result" class="screen result-container">
     <div class="student-profile-card">
       <div class="profile-avatar"><i class="fa-solid fa-user-graduate"></i></div>
@@ -198,12 +229,23 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="supportModal">
+  <div class="modal-card">
+    <h3>إبلاغ عن مشكلة</h3>
+    <textarea id="issueText" placeholder="اكتب مشكلتك هنا بوضوح وسيقوم المشرف بمراجعتها..."></textarea>
+    <div style="display:flex; gap:10px;">
+      <button class="btn-main" onclick="submitIssue()">إرسال</button>
+      <button class="btn-main" style="background:var(--bg-body); color:var(--text-dark)" onclick="closeSupport()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ==========================================
   // ضع رابط الـ Web App الخاص بك هنا
   // ==========================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxBnj6boePUSToeQMcuMSdeAhskEdgZdyohbR9a2XUJzCjvr_GRAek_rIo12jsdg-ZB/exec"; 
-  const API_KEY = "TANTA_MED_2026_SECURE";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEL_rC9FO6iW1noXfbjXS2VXxLJKegdZqLjU5RQyYV7N8p_W3xETb4-yYCX0GT0brG/exec"; 
+  const API_KEY = "TANTA_MED_2026_SECURE41";
 
   let studentID = ""; let authMode = ""; let cohortChartInstance = null; let finalPctValue = 0; 
   let chartDataCache = null; 
@@ -212,7 +254,6 @@
     let savedNID = localStorage.getItem('savedNID');
     if(savedNID) { document.getElementById('nationalId').value = savedNID; document.getElementById('rememberMe').checked = true; validateNID(); }
     
-    // **حماية من الريفريش ع الشاشات المتفرعة**
     let initialHash = window.location.hash.substring(1);
     if (!initialHash || (initialHash !== 'screen-id' && studentID === "")) {
         window.location.hash = 'screen-id';
@@ -238,6 +279,20 @@
     window.location.hash = 'screen-id';
     document.getElementById('password').value = '';
     validateNID();
+  }
+
+  function openSupport() { document.getElementById('supportModal').style.display = 'flex'; toggleFab();}
+  function closeSupport() { document.getElementById('supportModal').style.display = 'none'; document.getElementById('issueText').value = "";}
+
+  async function submitIssue() {
+    const text = document.getElementById('issueText').value.trim();
+    if(!text) return;
+    document.getElementById('supportModal').style.display = 'none';
+    alert("جاري الإرسال...");
+    try {
+      await apiCall("report_issue", { nationalId: studentID, issueText: text });
+      alert("تم إرسال رسالتك للإدارة بنجاح.");
+    } catch(e) { alert("حدث خطأ أثناء الإرسال"); }
   }
 
   function shareResult() {
@@ -266,7 +321,6 @@
     }, 15); 
   }
 
-  // **API Call (تم إضافة Content-Type لمنع مشاكل CORS)**
   async function apiCall(action, dataObj) {
     dataObj.action = action; dataObj.apiKey = API_KEY;
     const response = await fetch(SCRIPT_URL, { 
@@ -282,21 +336,21 @@
     document.getElementById('skeletonLoader').style.display = 'block';
     document.getElementById('error-1').style.display = 'none';
     document.getElementById('error-2').style.display = 'none';
-    if(document.getElementById('error-admin')) document.getElementById('error-admin').style.display = 'none';
+    document.getElementById('error-admin-login').style.display = 'none';
+    document.getElementById('error-admin-action').style.display = 'none';
   }
   function hideSkeleton() { document.getElementById('skeletonLoader').style.display = 'none'; }
   function showErr(step, msg) { 
     hideSkeleton(); 
     document.getElementById(`screen-${step}`).classList.add('active'); 
-    document.getElementById(`error-${step}`).innerText = msg; 
-    document.getElementById(`error-${step}`).style.display = 'block'; 
+    let errBox = document.getElementById(`error-${step}`);
+    if(errBox) { errBox.innerText = msg; errBox.style.display = 'block'; }
   }
 
-  // **تحكم ذكي في الرجوع والريفريش**
   window.addEventListener('hashchange', function() {
     let currentHash = window.location.hash.substring(1) || 'screen-id';
     
-    if (currentHash !== 'screen-id' && studentID === "") {
+    if (currentHash !== 'screen-id' && currentHash !== 'screen-admin-login' && studentID === "") {
         window.location.hash = 'screen-id';
         return;
     }
@@ -326,7 +380,8 @@
 
   function togglePass(iconElement, inputId) {
     const input = document.getElementById(inputId);
-    if(input.type === "password") { input.type = "text"; iconElement.classList.replace("fa-eye", "fa-eye-slash"); iconElement.style.color="var(--theme-color)";}
+    let iconColor = inputId === 'adminPassword' ? "var(--danger)" : "var(--theme-color)";
+    if(input.type === "password") { input.type = "text"; iconElement.classList.replace("fa-eye", "fa-eye-slash"); iconElement.style.color=iconColor;}
     else { input.type = "password"; iconElement.classList.replace("fa-eye-slash", "fa-eye"); iconElement.style.color="var(--text-muted)";}
   }
 
@@ -334,7 +389,7 @@
     studentID = document.getElementById('nationalId').value.trim();
     if(studentID.length < 3) return;
     
-    if(studentID.toLowerCase() === "admin") { switchScreen('screen-admin'); return; }
+    if(studentID.toLowerCase() === "admin") { switchScreen('screen-admin-login'); return; }
 
     if(document.getElementById('rememberMe').checked) { localStorage.setItem('savedNID', studentID); } 
     else { localStorage.removeItem('savedNID'); }
@@ -343,8 +398,8 @@
     try {
       const res = await apiCall("check_status", { nationalId: studentID });
       hideSkeleton();
-      if(res.status === "locked") showErr(1, `حساب محظور. جرب بعد ${res.remaining} دقيقة.`);
-      else if(res.status === "not_found") showErr(1, 'الرقم غير مسجل.');
+      if(res.status === "locked") showErr("id", `حساب محظور. جرب بعد ${res.remaining} دقيقة.`);
+      else if(res.status === "not_found") showErr("id", 'الرقم غير مسجل.');
       else if(res.status === "new_user") {
         authMode = 'register'; document.getElementById('authTitle').innerText = "إعداد كلمة المرور";
         document.getElementById('authInfo').innerHTML = `أهلاً <b>${res.name}</b><br>يرجى إعداد كلمة مرور خاصة بك.`;
@@ -354,45 +409,73 @@
         document.getElementById('authInfo').innerHTML = `مرحباً <b>${res.name}</b>`;
         document.getElementById('confirmPassGroup').style.display = 'none'; switchScreen('screen-auth'); 
       }
-    } catch(err) { showErr(1, 'خطأ اتصال بالسيرفر.'); }
+    } catch(err) { showErr("id", 'خطأ اتصال بالسيرفر.'); }
   }
 
   async function step2Auth() {
     let pass = document.getElementById('password').value.trim();
-    if(!pass) { showErr(2, 'أدخل كلمة المرور'); return; }
-    if(authMode === 'register' && pass !== document.getElementById('confirmPassword').value.trim()) { showErr(2, 'الكلمتان غير متطابقتين.'); return; }
+    if(!pass) { showErr("auth", 'أدخل كلمة المرور'); return; }
+    if(authMode === 'register' && pass !== document.getElementById('confirmPassword').value.trim()) { showErr("auth", 'الكلمتان غير متطابقتين.'); return; }
     
     showSkeleton();
     try {
       const action = authMode === 'register' ? "register" : "login";
       const res = await apiCall(action, { nationalId: studentID, password: pass });
       
-      if(res.status === "locked") { showErr(2, `مُحظر. جرب بعد ${res.remaining} دقيقة.`); }
-      else if(res.status === "wrong_password") { showErr(2, `كلمة مرور خاطئة (متبقي ${res.attemptsLeft})`); }
-      else if(res.status === "error") { showErr(2, res.message || 'حدث خطأ.'); }
+      if(res.status === "locked") { showErr("auth", `مُحظر. جرب بعد ${res.remaining} دقيقة.`); }
+      else if(res.status === "wrong_password") { showErr("auth", `كلمة مرور خاطئة (متبقي ${res.attemptsLeft})`); }
+      else if(res.status === "error") { showErr("auth", res.message || 'حدث خطأ.'); }
       else handleResult(res);
-    } catch(err) { showErr(2, 'خطأ اتصال بالسيرفر.'); }
+    } catch(err) { showErr("auth", 'خطأ اتصال بالسيرفر.'); }
   }
 
-  // **وظيفة الأدمن تم إعادتها**
-  async function adminReset() {
+  // ==========================================
+  // وظائف المشرف (دخول للوحة والإحصائيات)
+  // ==========================================
+  async function adminLogin() {
     let pass = document.getElementById('adminPassword').value.trim();
-    let targetNid = document.getElementById('adminResetNid').value.trim();
-    if(!pass || !targetNid) { showErr("admin", "أكمل البيانات"); return; }
+    if(!pass) { showErr("admin-login", "أدخل كلمة المرور"); return; }
     
     showSkeleton();
     try {
-      let loginRes = await apiCall("admin_login", { password: pass });
-      if(loginRes.status !== "success") { showErr("admin", loginRes.message); return; }
-      
-      let resetRes = await apiCall("admin_reset", { nationalId: targetNid });
+      let res = await apiCall("admin_login", { password: pass });
       hideSkeleton();
-      if(resetRes.status === "success") {
-        alert(resetRes.message);
+      if(res.status === "success") {
+        document.getElementById('adminStatTotal').innerText = res.stats.total;
+        document.getElementById('adminStatReg').innerText = res.stats.registered;
+        document.getElementById('adminStatRep').innerText = res.stats.reports;
+        document.getElementById('mainHeader').style.display = 'none';
+        document.getElementById('fabContainer').style.display = 'flex';
+        switchScreen('screen-admin-dashboard');
+      } else {
+        showErr("admin-login", res.message);
+      }
+    } catch(err) { showErr("admin-login", 'خطأ اتصال'); }
+  }
+
+  async function adminReset() {
+    let targetNid = document.getElementById('adminResetNid').value.trim();
+    if(!targetNid) { showErr("admin-action", "أدخل الرقم القومي للطالب"); return; }
+    
+    document.getElementById('error-admin-action').style.display = 'none';
+    let btn = document.querySelector('#screen-admin-dashboard .btn-main');
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري التنفيذ...';
+    btn.disabled = true;
+
+    try {
+      let res = await apiCall("admin_reset", { nationalId: targetNid });
+      btn.innerHTML = 'تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i>';
+      btn.disabled = false;
+      
+      if(res.status === "success") {
+        alert(res.message);
         document.getElementById('adminResetNid').value = "";
-        window.location.hash = 'screen-id';
-      } else { showErr("admin", resetRes.message); }
-    } catch(err) { showErr("admin", 'خطأ اتصال'); }
+      } else { showErr("admin-action", res.message); }
+    } catch(err) { 
+      btn.innerHTML = 'تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i>';
+      btn.disabled = false;
+      showErr("admin-action", 'خطأ اتصال'); 
+    }
   }
 
   function drawChart(stats) {
@@ -409,15 +492,7 @@
           borderRadius: 4
         }]
       },
-      options: { 
-        responsive: true, 
-        maintainAspectRatio: false, 
-        plugins: { legend: { display: false } }, 
-        scales: { 
-          y: { beginAtZero: true, ticks: { precision: 0 } }, 
-          x: { grid: { display: false }, ticks: { font: { size: 10 } } } 
-        } 
-      }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
     });
   }
 
