@@ -16,6 +16,10 @@
     body { font-family: 'Noto Kufi Arabic', sans-serif; background-color: var(--bg-body); color: var(--text-dark); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 15px 15px 80px 15px; transition: background-color 0.3s, color 0.3s; }
     .wrapper { width: 100%; max-width: 500px; position: relative;}
 
+    .top-bar { display: flex; justify-content: flex-end; margin-bottom: 15px; gap: 10px; }
+    .action-btn { background: var(--card-bg); border: 1px solid var(--border-light); color: var(--text-dark); width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.2s; }
+    .action-btn:active { transform: scale(0.9); }
+
     .header-logo { width: 65px; height: 65px; background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 20px; display: inline-flex; justify-content: center; align-items: center; font-size: 28px; color: var(--theme-color); margin: 0 auto 15px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: color 0.3s;}
     .header-section { text-align: center; margin-bottom: 30px; margin-top:20px; }
     .header-section h1 { font-size: 22px; font-weight: 800; }
@@ -28,7 +32,7 @@
     .input-group { margin-bottom: 15px; position: relative; }
     .input-icon { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
     .toggle-pass { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; padding: 10px; }
-    .input-group input { width: 100%; padding: 18px 45px; background: var(--bg-body); border: 1.5px solid var(--border-light); border-radius: 16px; font-size: 16px; font-family: inherit; font-weight: 700; color: var(--text-dark); transition: border-color 0.2s; text-transform: uppercase; }
+    .input-group input { width: 100%; padding: 18px 45px; background: var(--bg-body); border: 1.5px solid var(--border-light); border-radius: 16px; font-size: 16px; font-family: inherit; font-weight: 700; color: var(--text-dark); transition: border-color 0.2s; }
     .input-group input:focus { border-color: var(--primary); outline: none; background: var(--card-bg); }
     
     .remember-me { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; cursor: pointer; }
@@ -92,10 +96,11 @@
     .fab-main { width: 55px; height: 55px; border-radius: 50%; background: var(--theme-color); color: #fff; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; transition: transform 0.3s; }
     .fab-main.open { transform: rotate(45deg); }
 
+    /* تعديل ستايل نافذة الدعم الفني الشاملة */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 999; }
-    .modal-card { background: var(--card-bg); width: 90%; max-width: 400px; padding: 25px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
-    .modal-card h3 { margin-bottom: 15px; font-weight: 800; color: var(--text-dark); }
-    .modal-card textarea { width: 100%; height: 100px; padding: 15px; border-radius: 12px; border: 1px solid var(--border-light); background: var(--bg-body); font-family: inherit; font-size: 14px; margin-bottom: 15px; resize: none; color: var(--text-dark);}
+    .modal-card { background: var(--card-bg); width: 90%; max-width: 450px; padding: 25px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+    .modal-card h3 { font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
+    .modal-card textarea { width: 100%; height: 90px; padding: 15px; border-radius: 12px; border: 1px solid var(--border-light); background: var(--bg-body); font-family: inherit; font-size: 14px; margin-bottom: 15px; resize: none; color: var(--text-dark);}
     .modal-card textarea:focus { outline: none; border-color: var(--primary); }
 
     @media print {
@@ -108,6 +113,13 @@
 <body>
 
 <div class="wrapper">
+  
+  <!-- البار العلوي في الصفحة الرئيسية (متضمن أيقونة الدعم الخارجي) -->
+  <div class="top-bar" id="mainTopBar">
+    <div class="action-btn" onclick="openSupport()" title="الدعم الفني / تواصل معنا"><i class="fa-solid fa-headset"></i></div>
+    <div class="action-btn" onclick="toggleTheme()" title="الوضع الليلي"><i class="fa-solid fa-moon" id="themeIcon"></i></div>
+  </div>
+
   <div class="fab-container" id="fabContainer" style="display:none;">
     <div class="fab-menu" id="fabMenu">
       <button class="fab-btn" onclick="openSupport()" title="الدعم الفني"><i class="fa-solid fa-headset"></i></button>
@@ -127,7 +139,7 @@
   <div id="screen-id" class="screen active auth-card">
     <div class="input-group">
       <i class="fa-regular fa-id-card input-icon"></i>
-      <input type="text" id="nationalId" placeholder="أدخل الرقم القومي" oninput="validateNID()">
+      <input type="text" id="nationalId" placeholder="أدخل الرقم القومي أو كلمة الإدارة" oninput="validateNID()">
     </div>
     <label class="remember-me"><input type="checkbox" id="rememberMe"> تذكر بياناتي</label>
     <button class="btn-main" id="btnStep1" onclick="step1CheckID()" disabled>استمرار</button>
@@ -160,7 +172,7 @@
     <div id="error-2" class="error-msg"></div>
   </div>
 
-  <!-- شاشة الإدارة 1: طلب الباسورد (فيها علامة العين) -->
+  <!-- شاشة المشرف / الأدمن -->
   <div id="screen-admin-login" class="screen auth-card">
     <h3 style="text-align:center; color:var(--danger); font-weight:900; margin-bottom:15px;">تسجيل دخول المشرف</h3>
     <div class="input-group">
@@ -172,21 +184,16 @@
     <div id="error-admin-login" class="error-msg"></div>
   </div>
 
-  <!-- شاشة الإدارة 2: الداشبورد (لوحة التحكم والإحصائيات) -->
   <div id="screen-admin-dashboard" class="screen result-container" style="border-color: var(--danger);">
     <div class="student-profile-card" style="background: linear-gradient(135deg, var(--danger), #0f172a); border-bottom-color: #fca5a5;">
       <div class="profile-avatar"><i class="fa-solid fa-user-gear"></i></div>
       <h2>لوحة تحكم النظام</h2>
     </div>
-
-    <!-- الإحصائيات الفخمة للأدمن -->
     <div class="mini-stats" style="margin-top:25px;">
       <div class="m-stat"><span class="title">إجمالي الطلبة</span><div class="val" id="adminStatTotal">-</div></div>
       <div class="m-stat"><span class="title">مسجلين حسابات</span><div class="val" id="adminStatReg">-</div></div>
       <div class="m-stat" style="grid-column: span 2;"><span class="title">شكاوى الدعم الفني</span><div class="val" id="adminStatRep" style="color:var(--danger);">-</div></div>
     </div>
-
-    <!-- أداة فك الحظر -->
     <div class="sems-wrapper" style="border-top: 1px dashed var(--border-light); margin-top:20px;">
       <h3 class="section-head" style="color:var(--danger);"><i class="fa-solid fa-eraser"></i> إعادة ضبط طالب</h3>
       <div class="input-group">
@@ -198,6 +205,7 @@
     </div>
   </div>
 
+  <!-- النتيجة -->
   <div id="screen-result" class="screen result-container">
     <div class="student-profile-card">
       <div class="profile-avatar"><i class="fa-solid fa-user-graduate"></i></div>
@@ -209,7 +217,7 @@
       <div class="circular-progress" id="circularProgress"><div class="progress-value"><div id="resPctText">0%</div><span>النسبة المئوية</span></div></div>
       <div class="mini-stats">
         <div class="m-stat"><span class="title">الترتيب العام</span><div class="val" id="resRank">- <i class="fa-solid fa-trophy" style="font-size:16px;"></i></div></div>
-        <div class="m-stat"><span class="title">المجموع الكلي</span><div class="val" id="resTotal">-</div></div>
+        <div class="m-stat"><span class="title">المجموع الكلي</span><div class="val" id="resTotal" dir="ltr">-</div></div>
       </div>
     </div>
 
@@ -229,13 +237,28 @@
   </div>
 </div>
 
+<!-- نافذة الدعم الفني الشاملة -->
 <div class="modal-overlay" id="supportModal">
   <div class="modal-card">
-    <h3>إبلاغ عن مشكلة</h3>
-    <textarea id="issueText" placeholder="اكتب مشكلتك هنا بوضوح وسيقوم المشرف بمراجعتها..."></textarea>
+    <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-headset" style="color:var(--primary)"></i> تواصل مع الدعم الفني</h3>
+    
+    <div class="input-group" style="margin-bottom: 12px;">
+      <input type="text" id="supportName" placeholder="الاسم الرباعي" style="padding: 12px 15px;">
+    </div>
+    
+    <div class="input-group" style="margin-bottom: 12px;">
+      <input type="text" id="supportNid" placeholder="الرقم القومي أو الباسبور" style="padding: 12px 15px;">
+    </div>
+    
+    <div class="input-group" style="margin-bottom: 12px;">
+      <input type="tel" id="supportPhone" placeholder="رقم الهاتف (للتواصل)" style="padding: 12px 15px;" dir="ltr">
+    </div>
+    
+    <textarea id="issueText" placeholder="اكتب مشكلتك بالتفصيل هنا..." style="margin-bottom: 15px; height: 80px;"></textarea>
+    
     <div style="display:flex; gap:10px;">
-      <button class="btn-main" onclick="submitIssue()">إرسال</button>
-      <button class="btn-main" style="background:var(--bg-body); color:var(--text-dark)" onclick="closeSupport()">إلغاء</button>
+      <button class="btn-main" onclick="submitIssue()" style="margin-top: 0; padding: 12px;">إرسال الطلب</button>
+      <button class="btn-main" style="background:var(--bg-body); color:var(--text-dark); margin-top: 0; padding: 12px;" onclick="closeSupport()">إلغاء</button>
     </div>
   </div>
 </div>
@@ -244,7 +267,7 @@
   // ==========================================
   // ضع رابط الـ Web App الخاص بك هنا
   // ==========================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaQB3-WVksN4ugRFkGeGNnNaP-f_mFw26wFTXk8eyEp9iavK7ka-pUUaFdUILAMD7i/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxUK1bwyFwOh7L05-VIwqNTPxVClqKn_LBqUyUGST8hPPjVmr0K_gTboxjRnJB7FWX1/exec"; 
   const API_KEY = "TANTA_MED_2026_SECURE41";
 
   let studentID = ""; let authMode = ""; let cohortChartInstance = null; let finalPctValue = 0; 
@@ -255,7 +278,7 @@
     if(savedNID) { document.getElementById('nationalId').value = savedNID; document.getElementById('rememberMe').checked = true; validateNID(); }
     
     let initialHash = window.location.hash.substring(1);
-    if (!initialHash || (initialHash !== 'screen-id' && studentID === "")) {
+    if (!initialHash || (initialHash !== 'screen-id' && currentHash !== 'screen-admin-login' && studentID === "")) {
         window.location.hash = 'screen-id';
         renderScreenOnly('screen-id');
     } else {
@@ -268,7 +291,15 @@
     if (input.length >= 3) { document.getElementById('btnStep1').disabled = false; } else { document.getElementById('btnStep1').disabled = true; }
   }
 
-  function toggleTheme() { document.body.classList.toggle('dark-theme'); }
+  function toggleTheme() { 
+    document.body.classList.toggle('dark-theme'); 
+    let icon = document.getElementById('themeIcon');
+    if(icon) {
+      if(document.body.classList.contains('dark-theme')) icon.classList.replace('fa-moon', 'fa-sun');
+      else icon.classList.replace('fa-sun', 'fa-moon');
+    }
+  }
+
   function toggleFab() { document.getElementById('fabMenu').classList.toggle('open'); document.getElementById('fabMain').classList.toggle('open'); }
 
   function logout() {
@@ -276,22 +307,49 @@
     document.getElementById('fabMain').classList.remove('open');
     document.getElementById('fabContainer').style.display = 'none';
     document.getElementById('mainHeader').style.display = 'block';
+    document.getElementById('mainTopBar').style.display = 'flex'; // إظهار البار العلوي تاني
     window.location.hash = 'screen-id';
     document.getElementById('password').value = '';
     validateNID();
   }
 
-  function openSupport() { document.getElementById('supportModal').style.display = 'flex'; toggleFab();}
-  function closeSupport() { document.getElementById('supportModal').style.display = 'none'; document.getElementById('issueText').value = "";}
+  function openSupport() { 
+    document.getElementById('supportModal').style.display = 'flex'; 
+    if(document.getElementById('fabContainer').style.display !== 'none') {
+        toggleFab(); // لو فاتحها من النتيجة يقفل الـ FAB
+    }
+    // سحب الرقم القومي تلقائي لو الطالب كان كاتبه بره عشان ميكتبوش تاني
+    let currentNidForReport = studentID || document.getElementById('nationalId').value.trim();
+    if(currentNidForReport && currentNidForReport !== "admin") {
+        document.getElementById('supportNid').value = currentNidForReport;
+    }
+  }
+  
+  function closeSupport() { 
+    document.getElementById('supportModal').style.display = 'none'; 
+    document.getElementById('supportName').value = "";
+    document.getElementById('supportNid').value = "";
+    document.getElementById('supportPhone').value = "";
+    document.getElementById('issueText').value = "";
+  }
 
   async function submitIssue() {
+    const name = document.getElementById('supportName').value.trim();
+    const nid = document.getElementById('supportNid').value.trim();
+    const phone = document.getElementById('supportPhone').value.trim();
     const text = document.getElementById('issueText').value.trim();
-    if(!text) return;
+    
+    if(!name || !nid || !phone || !text) {
+        alert("يرجى إكمال جميع البيانات المطلوبة!");
+        return;
+    }
+
     document.getElementById('supportModal').style.display = 'none';
     alert("جاري الإرسال...");
     try {
-      await apiCall("report_issue", { nationalId: studentID, issueText: text });
-      alert("تم إرسال رسالتك للإدارة بنجاح.");
+      await apiCall("report_issue", { studentName: name, nationalId: nid, phoneNum: phone, issueText: text });
+      alert("تم إرسال طلبك للدعم الفني بنجاح. سيتم مراجعته في أقرب وقت.");
+      closeSupport(); // عشان تفضي الخانات
     } catch(e) { alert("حدث خطأ أثناء الإرسال"); }
   }
 
@@ -361,6 +419,7 @@
       studentID = ""; authMode = "";
       document.getElementById('fabContainer').style.display = 'none';
       document.getElementById('mainHeader').style.display = 'block';
+      document.getElementById('mainTopBar').style.display = 'flex';
     }
     renderScreenOnly(currentHash);
   });
@@ -429,9 +488,6 @@
     } catch(err) { showErr("auth", 'خطأ اتصال بالسيرفر.'); }
   }
 
-  // ==========================================
-  // وظائف المشرف (دخول للوحة والإحصائيات)
-  // ==========================================
   async function adminLogin() {
     let pass = document.getElementById('adminPassword').value.trim();
     if(!pass) { showErr("admin-login", "أدخل كلمة المرور"); return; }
@@ -445,6 +501,7 @@
         document.getElementById('adminStatReg').innerText = res.stats.registered;
         document.getElementById('adminStatRep').innerText = res.stats.reports;
         document.getElementById('mainHeader').style.display = 'none';
+        document.getElementById('mainTopBar').style.display = 'none';
         document.getElementById('fabContainer').style.display = 'flex';
         switchScreen('screen-admin-dashboard');
       } else {
@@ -500,7 +557,12 @@
     document.getElementById('resName').innerText = res.name || '-';
     document.getElementById('resBatch').innerText = res.batch || '-';
     document.getElementById('resRank').innerText = res.rank || '-';
-    document.getElementById('resTotal').innerText = res.total || '-';
+    
+    let totalHtml = res.total || '-';
+    if (res.totalMax && res.total !== '-') {
+        totalHtml = `${res.total} <span style="font-size:14px; opacity:0.6">/ ${res.totalMax}</span>`;
+    }
+    document.getElementById('resTotal').innerHTML = totalHtml;
     
     finalPctValue = res.percentage || '0';
     applyDynamicTheme(finalPctValue); 
@@ -510,11 +572,16 @@
     container.innerHTML = ''; 
     if (res.semesters && res.semesters.length > 0) {
       res.semesters.forEach(sem => {
+        let scoreHtml = sem.score;
+        if (sem.maxScore && sem.score !== '-') {
+            scoreHtml = `${sem.score} <span style="font-size:14px; opacity:0.6">/ ${sem.maxScore}</span>`;
+        }
+        
         container.innerHTML += `
           <div class="sem-item">
             <div class="sem-header">
               <div class="sem-info"><div class="sem-icon"><i class="fa-solid fa-book"></i></div><span class="sem-name">${sem.name}</span></div>
-              <span class="sem-score">${sem.score}</span>
+              <span class="sem-score" dir="ltr" style="display:inline-block;">${scoreHtml}</span>
             </div>
           </div>`;
       });
@@ -523,6 +590,7 @@
     if (res.cohortStats) { chartDataCache = res.cohortStats; } 
 
     document.getElementById('mainHeader').style.display = 'none'; 
+    document.getElementById('mainTopBar').style.display = 'none'; 
     document.getElementById('fabContainer').style.display = 'flex'; 
     switchScreen('screen-result'); 
   }
