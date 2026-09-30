@@ -13,10 +13,10 @@
     :root { --primary: #2563eb; --bg-body: #f1f5f9; --card-bg: #ffffff; --text-dark: #0f172a; --text-muted: #64748b; --border-light: #e2e8f0; --gold: #f59e0b; --danger: #ef4444; --success: #10b981; --theme-color: #2563eb; }
     body.dark-theme { --primary: #3b82f6; --bg-body: #0f172a; --card-bg: #1e293b; --text-dark: #f8fafc; --text-muted: #94a3b8; --border-light: #334155; --theme-color: #3b82f6; }
     
-    body { font-family: 'Noto Kufi Arabic', sans-serif; background-color: var(--bg-body); color: var(--text-dark); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 15px 15px 80px 15px; }
+    body { font-family: 'Noto Kufi Arabic', sans-serif; background-color: var(--bg-body); color: var(--text-dark); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 15px 15px 80px 15px; transition: background-color 0.3s, color 0.3s; }
     .wrapper { width: 100%; max-width: 500px; position: relative;}
 
-    .header-logo { width: 65px; height: 65px; background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 20px; display: inline-flex; justify-content: center; align-items: center; font-size: 28px; color: var(--theme-color); margin: 0 auto 15px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .header-logo { width: 65px; height: 65px; background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 20px; display: inline-flex; justify-content: center; align-items: center; font-size: 28px; color: var(--theme-color); margin: 0 auto 15px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: color 0.3s;}
     .header-section { text-align: center; margin-bottom: 30px; margin-top:20px; }
     .header-section h1 { font-size: 22px; font-weight: 800; }
     
@@ -52,18 +52,8 @@
     
     .result-container { background: var(--card-bg); border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); border: 1px solid var(--theme-color); padding-bottom: 20px; overflow: hidden; transition: border-color 0.4s;}
     
-    /* تصميم كارت الاسم والفرقة الجديد */
-    .student-profile-card {
-      background: linear-gradient(135deg, var(--theme-color), #0f172a);
-      color: #fff; padding: 25px 20px; text-align: center;
-      border-bottom: 4px solid var(--gold);
-    }
-    .profile-avatar {
-      width: 70px; height: 70px; margin: 0 auto 12px auto;
-      background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3);
-      border-radius: 50%; display: flex; justify-content: center; align-items: center;
-      font-size: 30px; color: #fff;
-    }
+    .student-profile-card { background: linear-gradient(135deg, var(--theme-color), #0f172a); color: #fff; padding: 25px 20px; text-align: center; border-bottom: 4px solid var(--gold); }
+    .profile-avatar { width: 70px; height: 70px; margin: 0 auto 12px auto; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; color: #fff; }
     .student-profile-card h2 { font-size: 20px; font-weight: 900; margin-bottom: 5px; }
     .student-profile-card .badge { background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; border: 1px solid rgba(255,255,255,0.1); display: inline-block; }
 
@@ -90,7 +80,6 @@
     .sem-name { font-size: 14px; font-weight: 800; color: var(--text-dark); }
     .sem-score { font-size: 18px; font-weight: 900; color: var(--theme-color); background: var(--card-bg); padding: 4px 12px; border-radius: 10px; border: 1px solid var(--border-light);}
     
-    /* تعديل التشارت عشان يظهر عالموبايل 100% */
     .chart-wrapper { padding: 15px 20px 25px 20px; border-top: 1px dashed var(--border-light); }
     .chart-container-box { width: 100%; height: 250px; position: relative; background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 16px; padding: 10px;}
 
@@ -109,7 +98,6 @@
 <body>
 
 <div class="wrapper">
-  <!-- الزر العائم FAB -->
   <div class="fab-container" id="fabContainer" style="display:none;">
     <div class="fab-menu" id="fabMenu">
       <button class="fab-btn" onclick="shareResult()" title="مشاركة"><i class="fa-solid fa-share-nodes"></i></button>
@@ -128,7 +116,7 @@
   <div id="screen-id" class="screen active auth-card">
     <div class="input-group">
       <i class="fa-regular fa-id-card input-icon"></i>
-      <input type="text" id="nationalId" placeholder="أدخل الرقم القومي أو الباسبور" oninput="validateNID()">
+      <input type="text" id="nationalId" placeholder="أدخل الرقم القومي أو كلمة الإدارة" oninput="validateNID()">
     </div>
     <label class="remember-me"><input type="checkbox" id="rememberMe"> تذكر بياناتي</label>
     <button class="btn-main" id="btnStep1" onclick="step1CheckID()" disabled>استمرار</button>
@@ -163,9 +151,23 @@
     <div id="error-2" class="error-msg"></div>
   </div>
 
+  <!-- **تمت إضافة شاشة الأدمن هنا** -->
+  <div id="screen-admin" class="screen auth-card">
+    <h3 style="text-align:center; color:var(--danger); font-weight:900; margin-bottom:15px;">لوحة تحكم المشرف</h3>
+    <div class="input-group">
+      <i class="fa-solid fa-user-shield input-icon"></i>
+      <input type="password" id="adminPassword" placeholder="كلمة مرور الإدارة">
+    </div>
+    <div class="input-group">
+      <i class="fa-solid fa-eraser input-icon"></i>
+      <input type="text" id="adminResetNid" placeholder="الرقم القومي لفك الحظر/المسح">
+    </div>
+    <button class="btn-main" style="background:var(--danger)" onclick="adminReset()">تنفيذ إجراء <i class="fa-solid fa-triangle-exclamation"></i></button>
+    <div id="error-admin" class="error-msg"></div>
+  </div>
+
   <!-- شاشة 3: النتيجة -->
   <div id="screen-result" class="screen result-container">
-    <!-- كارت الاسم والفرقة المطور -->
     <div class="student-profile-card">
       <div class="profile-avatar"><i class="fa-solid fa-user-graduate"></i></div>
       <h2 id="resName">-</h2>
@@ -185,7 +187,6 @@
       <div id="semestersContainer"></div>
     </div>
 
-    <!-- تعديل الكونتينر بتاع التشارت -->
     <div class="chart-wrapper">
       <h3 class="section-head"><i class="fa-solid fa-chart-simple"></i> تحليل الدفعة</h3>
       <div class="chart-container-box">
@@ -199,17 +200,26 @@
 
 <script>
   // ==========================================
-  // حط رابط الـ Web App بتاعك هنا
+  // ضع رابط الـ Web App الخاص بك هنا
   // ==========================================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwEt-qjlaiY2xBqRPv7dMM5mDtCdWhTPjzUbcOxMPZA3Kpvf1ZwKcnPMWUADSmBVV3_/exec"; 
   const API_KEY = "TANTA_MED_2026_SECURE";
 
   let studentID = ""; let authMode = ""; let cohortChartInstance = null; let finalPctValue = 0; 
-  let chartDataCache = null; // لتخزين الداتا عشان نرسم الشارت لما الشاشة تفتح
+  let chartDataCache = null; 
 
   window.onload = function() {
     let savedNID = localStorage.getItem('savedNID');
     if(savedNID) { document.getElementById('nationalId').value = savedNID; document.getElementById('rememberMe').checked = true; validateNID(); }
+    
+    // **حماية من الريفريش ع الشاشات المتفرعة**
+    let initialHash = window.location.hash.substring(1);
+    if (!initialHash || (initialHash !== 'screen-id' && studentID === "")) {
+        window.location.hash = 'screen-id';
+        renderScreenOnly('screen-id');
+    } else {
+        renderScreenOnly(initialHash);
+    }
   };
 
   function validateNID() {
@@ -256,10 +266,14 @@
     }, 15); 
   }
 
-  // API 
+  // **API Call (تم إضافة Content-Type لمنع مشاكل CORS)**
   async function apiCall(action, dataObj) {
     dataObj.action = action; dataObj.apiKey = API_KEY;
-    const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(dataObj) });
+    const response = await fetch(SCRIPT_URL, { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(dataObj) 
+    });
     return await response.json();
   }
 
@@ -268,6 +282,7 @@
     document.getElementById('skeletonLoader').style.display = 'block';
     document.getElementById('error-1').style.display = 'none';
     document.getElementById('error-2').style.display = 'none';
+    if(document.getElementById('error-admin')) document.getElementById('error-admin').style.display = 'none';
   }
   function hideSkeleton() { document.getElementById('skeletonLoader').style.display = 'none'; }
   function showErr(step, msg) { 
@@ -277,18 +292,18 @@
     document.getElementById(`error-${step}`).style.display = 'block'; 
   }
 
-  // حل مشكلة الريفريش العالق في صفحة النتيجة
+  // **تحكم ذكي في الرجوع والريفريش**
   window.addEventListener('hashchange', function() {
     let currentHash = window.location.hash.substring(1) || 'screen-id';
     
-    // لو الهش result والـ ID فاضي (يعني عمل ريفريش)، رجعه للبداية فوراً
-    if (currentHash === 'screen-result' && studentID === "") {
+    if (currentHash !== 'screen-id' && studentID === "") {
         window.location.hash = 'screen-id';
         return;
     }
 
     if (currentHash === 'screen-id') {
-      document.getElementById('password').value = ''; document.getElementById('confirmPassword').value = ''; 
+      document.getElementById('password').value = ''; 
+      if(document.getElementById('confirmPassword')) document.getElementById('confirmPassword').value = ''; 
       studentID = ""; authMode = "";
       document.getElementById('fabContainer').style.display = 'none';
       document.getElementById('mainHeader').style.display = 'block';
@@ -304,13 +319,10 @@
     let target = document.getElementById(screenId);
     if(target) target.classList.add('active'); else document.getElementById('screen-id').classList.add('active');
 
-    // رسم الشارت بعد ما الشاشة تفتح بـ 200 جزء من الثانية عشان يظبط أبعاده عالموبايل
     if(screenId === 'screen-result' && chartDataCache) {
       setTimeout(() => { drawChart(chartDataCache); }, 200);
     }
   }
-
-  if (!window.location.hash) window.location.hash = 'screen-id'; else renderScreenOnly(window.location.hash.substring(1));
 
   function togglePass(iconElement, inputId) {
     const input = document.getElementById(inputId);
@@ -322,6 +334,8 @@
     studentID = document.getElementById('nationalId').value.trim();
     if(studentID.length < 3) return;
     
+    if(studentID.toLowerCase() === "admin") { switchScreen('screen-admin'); return; }
+
     if(document.getElementById('rememberMe').checked) { localStorage.setItem('savedNID', studentID); } 
     else { localStorage.removeItem('savedNID'); }
 
@@ -358,6 +372,27 @@
       else if(res.status === "error") { showErr(2, res.message || 'حدث خطأ.'); }
       else handleResult(res);
     } catch(err) { showErr(2, 'خطأ اتصال بالسيرفر.'); }
+  }
+
+  // **وظيفة الأدمن تم إعادتها**
+  async function adminReset() {
+    let pass = document.getElementById('adminPassword').value.trim();
+    let targetNid = document.getElementById('adminResetNid').value.trim();
+    if(!pass || !targetNid) { showErr("admin", "أكمل البيانات"); return; }
+    
+    showSkeleton();
+    try {
+      let loginRes = await apiCall("admin_login", { password: pass });
+      if(loginRes.status !== "success") { showErr("admin", loginRes.message); return; }
+      
+      let resetRes = await apiCall("admin_reset", { nationalId: targetNid });
+      hideSkeleton();
+      if(resetRes.status === "success") {
+        alert(resetRes.message);
+        document.getElementById('adminResetNid').value = "";
+        window.location.hash = 'screen-id';
+      } else { showErr("admin", resetRes.message); }
+    } catch(err) { showErr("admin", 'خطأ اتصال'); }
   }
 
   function drawChart(stats) {
@@ -410,7 +445,7 @@
       });
     }
 
-    if (res.cohortStats) { chartDataCache = res.cohortStats; } // نحفظ الداتا للرسم بعد الشاشة ما تفتح
+    if (res.cohortStats) { chartDataCache = res.cohortStats; } 
 
     document.getElementById('mainHeader').style.display = 'none'; 
     document.getElementById('fabContainer').style.display = 'flex'; 
