@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>بوابة نتائج طب طنطا</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    :root { 
+      --primary: #2563eb; --primary-soft: #eff6ff; --bg-body: #f1f5f9; --card-bg: #ffffff; 
+      --text-dark: #0f172a; --text-muted: #64748b; --border-light: #e2e8f0; 
+      --gold: #f59e0b; --danger: #ef4444; --success: #10b981; 
+      --theme-color: #2563eb; /* لون ديناميكي يتغير حسب النتيجة */
+    }
+
+    body.dark-theme { 
+      --primary: #3b82f6; --primary-soft: #1e293b; --bg-body: #0f172a; --card-bg: #1e293b; 
+      --text-dark: #f8fafc; --text-muted: #94a3b8; --border-light: #334155; 
+      --theme-color: #3b82f6;
+    }
+    
+    body { font-family: 'Noto Kufi Arabic', sans-serif; background-color: var(--bg-body); color: var(--text-dark); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 15px 15px 80px 15px; transition: background-color 0.3s, color 0.3s; }
+    .wrapper { width: 100%; max-width: 500px; position: relative;}
+
+    .header-logo { width: 65px; height: 65px; background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 20px; display: inline-flex; justify-content: center; align-items: center; font-size: 28px; color: var(--theme-color); margin: 0 auto 15px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: color 0.3s;}
+    .header-section { text-align: center; margin-bottom: 30px; margin-top:20px; }
+    .header-section h1 { font-size: 22px; font-weight: 800; }
+    
+    .screen { display: none; animation: slideUp 0.4s ease forwards; }
+    .screen.active { display: block; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .auth-card { background: var(--card-bg); padding: 30px 20px; border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); border: 1px solid var(--border-light); }
+    .input-group { margin-bottom: 15px; position: relative; }
+    .input-icon { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .toggle-pass { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; padding: 10px; }
+    .input-group input { width: 100%; padding: 18px 45px; background: var(--bg-body); border: 1.5px solid var(--border-light); border-radius: 16px; font-size: 16px; font-family: inherit; font-weight: 700; color: var(--text-dark); transition: border-color 0.2s; text-transform: uppercase; }
+    .input-group input:focus { border-color: var(--primary); outline: none; background: var(--card-bg); }
+    
+    .remember-me { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; cursor: pointer; }
+    .remember-me input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
+
+    .btn-main { width: 100%; padding: 18px; margin-top: 10px; background: var(--primary); color: #ffffff; border: none; border-radius: 16px; font-size: 16px; font-weight: 800; display: flex; justify-content: center; gap: 10px; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2); transition: all 0.2s; cursor: pointer; }
+    .btn-main:active { transform: scale(0.97); } 
+    .btn-main:disabled { background: var(--text-muted); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
+
+    /* تأثير الـ Skeleton Loader الحديث */
+    .skeleton-container { display: none; width: 100%; }
+    .skeleton-card { background: var(--card-bg); border-radius: 24px; padding: 25px; border: 1px solid var(--border-light); }
+    .skeleton { background: var(--border-light); background: linear-gradient(110deg, var(--border-light) 8%, var(--bg-body) 18%, var(--border-light) 33%); background-size: 200% 100%; animation: 1.5s shine linear infinite; border-radius: 10px; }
+    @keyframes shine { to { background-position-x: -200%; } }
+    .sk-avatar { width: 70px; height: 70px; border-radius: 50%; margin: 0 auto 15px auto; }
+    .sk-title { width: 60%; height: 20px; margin: 0 auto 20px auto; }
+    .sk-box { width: 100%; height: 80px; margin-bottom: 15px; border-radius: 16px; }
+
+    .error-msg { display: none; background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 15px; border-radius: 12px; text-align: center; margin-top: 15px; font-size: 13px; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.2); }
+    .info-msg { background: var(--primary-soft); color: var(--primary); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px; font-size: 13px; font-weight: 700; border: 1px solid var(--border-light); line-height: 1.6;}
+    
+    .result-container { background: var(--card-bg); border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); border: 1px solid var(--theme-color); padding-bottom: 20px; overflow: hidden; transition: border-color 0.4s;}
+    .student-header { padding: 25px 20px; border-bottom: 1px solid var(--border-light); text-align: center; }
+    .student-info h2 { font-size: 18px; font-weight: 900; margin-bottom: 5px; color: var(--theme-color); }
+    .badge { background: var(--bg-body); padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; color: var(--text-muted); border: 1px solid var(--border-light); display: inline-block; }
+    
+    .progress-section { padding: 30px 20px; display: flex; flex-direction: column; align-items: center; background: linear-gradient(to bottom, var(--card-bg), var(--bg-body)); }
+    .circular-progress { position: relative; width: 140px; height: 140px; border-radius: 50%; background: conic-gradient(var(--border-light) 100%, transparent 0); display: flex; justify-content: center; align-items: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .circular-progress::before { content: ""; position: absolute; width: 115px; height: 115px; border-radius: 50%; background-color: var(--card-bg); box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+    .progress-value { position: relative; font-size: 28px; font-weight: 900; color: var(--theme-color); display: flex; flex-direction: column; align-items: center; line-height: 1; transition: color 0.4s;}
+    .progress-value span { font-size: 12px; color: var(--text-muted); font-weight: 700; margin-top: 5px; }
+    
+    .mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; padding: 0 20px; }
+    .m-stat { background: var(--card-bg); padding: 15px; border-radius: 16px; text-align: center; border: 1px solid var(--border-light); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+    .m-stat .title { font-size: 12px; color: var(--text-muted); font-weight: 700; margin-bottom: 5px; display: block; }
+    .m-stat .val { font-size: 22px; font-weight: 900; color: var(--text-dark); }
+    .m-stat i { color: var(--gold); margin-left: 5px; }
+    
+    .section-head { font-size: 15px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+    .section-head i { color: var(--theme-color); transition: color 0.4s;}
+    
+    /* الأكورديون للسيمسترات */
+    .sems-wrapper { padding: 25px 20px 10px 20px; }
+    .sem-item { background: var(--bg-body); border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border-light); overflow: hidden; }
+    .sem-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; cursor: pointer; }
+    .sem-header:active { background: var(--border-light); }
+    .sem-info { display: flex; align-items: center; gap: 12px; }
+    .sem-icon { width: 35px; height: 35px; border-radius: 10px; background: var(--card-bg); display: flex; justify-content: center; align-items: center; color: var(--theme-color); border: 1px solid var(--border-light); font-size: 14px; }
+    .sem-name { font-size: 14px; font-weight: 800; color: var(--text-dark); }
+    .sem-score { font-size: 18px; font-weight: 900; color: var(--theme-color); background: var(--card-bg); padding: 4px 12px; border-radius: 10px; border: 1px solid var(--border-light);}
+    .sem-details { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: var(--card-bg); padding: 0 20px; font-size: 13px; color: var(--text-muted); text-align: center; }
+    .sem-item.expanded .sem-details { max-height: 100px; padding: 15px 20px; border-top: 1px dashed var(--border-light); }
+
+    .chart-wrapper { padding: 15px 20px 25px 20px; border-top: 1px dashed var(--border-light); }
+    .chart-scroll-area { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 16px; padding: 15px; }
+    .chart-inner { min-width: 450px; height: 220px; } 
+    .disclaimer { margin: 0 20px 20px 20px; padding: 15px; background: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 14px; text-align: center; font-size: 12px; font-weight: 700; color: var(--danger); line-height: 1.6; }
+
+    /* الزر العائم FAB المجمع (مشاركة - طباعة - خروج - دعم) */
+    .fab-container { position: fixed; bottom: 20px; right: 20px; z-index: 99; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .fab-menu { display: flex; flex-direction: column; gap: 10px; opacity: 0; transform: translateY(20px); pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .fab-menu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .fab-btn { width: 45px; height: 45px; border-radius: 50%; background: var(--card-bg); color: var(--theme-color); border: 1px solid var(--border-light); box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; transition: transform 0.2s; }
+    .fab-btn:active { transform: scale(0.9); }
+    .fab-main { width: 55px; height: 55px; border-radius: 50%; background: var(--theme-color); color: #fff; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; transition: transform 0.3s, background-color 0.3s; }
+    .fab-main.open { transform: rotate(45deg); }
+
+    /* مودال الدعم الفني والأدمن */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 999; }
+    .modal-card { background: var(--card-bg); width: 90%; max-width: 400px; padding: 25px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+    .modal-card h3 { margin-bottom: 15px; font-weight: 800; color: var(--text-dark); }
+    .modal-card textarea { width: 100%; height: 100px; padding: 15px; border-radius: 12px; border: 1px solid var(--border-light); background: var(--bg-body); font-family: inherit; font-size: 14px; margin-bottom: 15px; resize: none; color: var(--text-dark);}
+    .modal-card textarea:focus { outline: none; border-color: var(--primary); }
+
+    @media print {
+      body, .result-container { background: #fff !important; color: #000 !important; border: none !important; box-shadow: none !important; }
+      .top-bar, .header-section, .chart-wrapper, .fab-container, .disclaimer, .screen:not(#screen-result) { display: none !important; }
+      .result-container::after { content: "مستخرج من بوابة النتائج - لا يعتد به كمستند رسمي"; display: block; text-align: center; font-size: 12px; margin-top: 30px; font-weight: bold; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <!-- الزر العائم FAB -->
+  <div class="fab-container" id="fabContainer" style="display:none;">
+    <div class="fab-menu" id="fabMenu">
+      <button class="fab-btn" onclick="openSupport()" title="الدعم الفني"><i class="fa-solid fa-headset"></i></button>
+      <button class="fab-btn" onclick="window.print()" title="طباعة"><i class="fa-solid fa-print"></i></button>
+      <button class="fab-btn" onclick="shareResult()" title="مشاركة"><i class="fa-solid fa-share-nodes"></i></button>
+      <button class="fab-btn" onclick="toggleTheme()" title="الوضع الليلي"><i class="fa-solid fa-moon"></i></button>
+      <button class="fab-btn" onclick="logout()" title="خروج" style="color:var(--danger)"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+    <button class="fab-main" id="fabMain" onclick="toggleFab()"><i class="fa-solid fa-bars"></i></button>
+  </div>
+
+  <header class="header-section" id="mainHeader">
+    <div class="header-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+    <h1>بوابة نتائج طب طنطا</h1>
+  </header>
+
+  <!-- شاشة 1: الرقم القومي -->
+  <div id="screen-id" class="screen active auth-card">
+    <div class="input-group">
+      <i class="fa-regular fa-id-card input-icon"></i>
+      <input type="text" id="nationalId" placeholder="أدخل الرقم القومي أو كلمة الإدارة" oninput="validateNID()">
+    </div>
+    <label class="remember-me"><input type="checkbox" id="rememberMe"> تذكر بياناتي</label>
+    <button class="btn-main" id="btnStep1" onclick="step1CheckID()" disabled>استمرار</button>
+    <div id="error-1" class="error-msg"></div>
+  </div>
+
+  <!-- الـ Skeleton Loader -->
+  <div id="skeletonLoader" class="skeleton-container">
+    <div class="skeleton-card">
+      <div class="skeleton sk-avatar"></div>
+      <div class="skeleton sk-title"></div>
+      <div class="skeleton sk-box"></div>
+      <div class="skeleton sk-box"></div>
+    </div>
+  </div>
+
+  <!-- شاشة 2: المصادقة -->
+  <div id="screen-auth" class="screen auth-card">
+    <h3 id="authTitle" style="text-align:center; font-size: 18px; margin-bottom: 15px; font-weight: 900;">مصادقة الدخول</h3>
+    <div id="authInfo" class="info-msg"></div>
+    <div class="input-group">
+      <i class="fa-solid fa-lock input-icon"></i>
+      <input type="password" id="password" placeholder="كلمة المرور">
+      <i class="fa-regular fa-eye toggle-pass" onclick="togglePass(this, 'password')"></i>
+    </div>
+    <div class="input-group" id="confirmPassGroup">
+      <i class="fa-solid fa-shield-check input-icon"></i>
+      <input type="password" id="confirmPassword" placeholder="تأكيد كلمة المرور">
+      <i class="fa-regular fa-eye toggle-pass" onclick="togglePass(this, 'confirmPassword')"></i>
+    </div>
+    <button class="btn-main" onclick="step2Auth()">عرض النتائج</button>
+    <div id="error-2" class="error-msg"></div>
+  </div>
+
+  <!-- شاشة الأدمن السريعة -->
+  <div id="screen-admin" class="screen auth-card">
+    <h3 style="text-align:center; color:var(--danger); font-weight:900; margin-bottom:15px;">لوحة تحكم المشرف</h3>
+    <div class="input-group">
+      <i class="fa-solid fa-user-shield input-icon"></i>
+      <input type="password" id="adminPassword" placeholder="كلمة مرور الإدارة">
+    </div>
+    <div class="input-group">
+      <i class="fa-solid fa-eraser input-icon"></i>
+      <input type="text" id="adminResetNid" placeholder="الرقم القومي للطالب لفك الحظر/المسح">
+    </div>
+    <button class="btn-main" style="background:var(--danger)" onclick="adminReset()">تنفيذ <i class="fa-solid fa-triangle-exclamation"></i></button>
+    <div id="error-admin" class="error-msg"></div>
+  </div>
+
+  <!-- شاشة 3: النتيجة -->
+  <div id="screen-result" class="screen result-container">
+    <div class="student-header">
+      <div class="student-info"><h2 id="resName">-</h2><div class="badge" id="resBatch">-</div></div>
+    </div>
+    <div class="progress-section">
+      <div class="circular-progress" id="circularProgress"><div class="progress-value"><div id="resPctText">0%</div><span>النسبة المئوية</span></div></div>
+      <div class="mini-stats">
+        <div class="m-stat"><span class="title">الترتيب العام</span><div class="val" id="resRank">- <i class="fa-solid fa-trophy" style="font-size:16px;"></i></div></div>
+        <div class="m-stat"><span class="title">المجموع الكلي</span><div class="val" id="resTotal">-</div></div>
+      </div>
+    </div>
+    <div class="sems-wrapper">
+      <h3 class="section-head"><i class="fa-solid fa-list-check"></i> السجل الأكاديمي (اضغط للتفاصيل)</h3>
+      <div id="semestersContainer"></div>
+    </div>
+    <div class="chart-wrapper">
+      <h3 class="section-head"><i class="fa-solid fa-chart-simple"></i> تحليل مستوى الدفعة</h3>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">(اسحب لليسار لرؤية باقي الرسم البياني)</p>
+      <div class="chart-scroll-area"><div class="chart-inner"><canvas id="cohortChart"></canvas></div></div>
+    </div>
+    <div class="disclaimer">لا يعتد بهذه النتيجة كمستند رسمي , فهو عمل ودي بين الطلبة لمعرفة الترتيب والدرجات ولا علاقة له بالكلية</div>
+  </div>
+</div>
+
+<!-- مودال الدعم الفني -->
+<div class="modal-overlay" id="supportModal">
+  <div class="modal-card">
+    <h3>إبلاغ عن مشكلة</h3>
+    <textarea id="issueText" placeholder="اكتب مشكلتك هنا بوضوح وسيقوم المشرف بمراجعتها..."></textarea>
+    <div style="display:flex; gap:10px;">
+      <button class="btn-main" onclick="submitIssue()">إرسال</button>
+      <button class="btn-main" style="background:var(--bg-body); color:var(--text-dark)" onclick="closeSupport()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ==========================================
+  // إعدادات الـ API (حط الرابط بتاعك هنا)
+  // ==========================================
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpe9Ci8-ukh0bQwg0AgaIDb3pxxp780gvTtSwVJauTf2lNOygpCrEaj8SNkLJcMPCe/exec"; // <--- حط رابط الـ Web App هنا
+  const API_KEY = "TANTA_MED_2026_SECURE";
+
+  let studentID = ""; let authMode = ""; let cohortChartInstance = null; let finalPctValue = 0; 
+
+  window.onload = function() {
+    let savedNID = localStorage.getItem('savedNID');
+    if(savedNID) { document.getElementById('nationalId').value = savedNID; document.getElementById('rememberMe').checked = true; validateNID(); }
+  };
+
+  function validateNID() {
+    const input = document.getElementById('nationalId').value.trim();
+    const btn = document.getElementById('btnStep1');
+    if (input.length >= 3) { btn.disabled = false; } else { btn.disabled = true; }
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+  }
+
+  function toggleFab() {
+    document.getElementById('fabMenu').classList.toggle('open');
+    document.getElementById('fabMain').classList.toggle('open');
+  }
+
+  function logout() {
+    document.getElementById('fabMenu').classList.remove('open');
+    document.getElementById('fabMain').classList.remove('open');
+    document.getElementById('fabContainer').style.display = 'none';
+    document.getElementById('mainHeader').style.display = 'block';
+    window.location.hash = 'screen-id';
+    document.getElementById('password').value = '';
+    validateNID();
+  }
+
+  function openSupport() { document.getElementById('supportModal').style.display = 'flex'; toggleFab();}
+  function closeSupport() { document.getElementById('supportModal').style.display = 'none'; document.getElementById('issueText').value = "";}
+
+  async function submitIssue() {
+    const text = document.getElementById('issueText').value.trim();
+    if(!text) return;
+    document.getElementById('supportModal').style.display = 'none';
+    alert("جاري الإرسال...");
+    try {
+      await apiCall("report_issue", { nationalId: studentID, issueText: text });
+      alert("تم إرسال رسالتك للإدارة بنجاح.");
+    } catch(e) { alert("حدث خطأ أثناء الإرسال"); }
+  }
+
+  function shareResult() {
+    const name = document.getElementById('resName').innerText; const rank = document.getElementById('resRank').innerText;
+    const shareText = `الحمد لله! نتيجتي في طب طنطا:\nالاسم: ${name}\nالنسبة: ${finalPctValue}%\nالترتيب: ${rank}\nعقبالكم جميعاً! 🎓`;
+    if (navigator.share) { navigator.share({ title: 'نتيجتي', text: shareText }).catch(console.error); toggleFab(); } 
+    else { navigator.clipboard.writeText(shareText); alert("تم النسخ للحافظة!"); toggleFab(); }
+  }
+
+  // تلوين ديناميكي حسب النتيجة
+  function applyDynamicTheme(pct) {
+    let p = parseFloat(pct);
+    let color = '#2563eb'; // Default Blue
+    if(p >= 85) color = '#10b981'; // Green (Excellent)
+    else if(p >= 75) color = '#3b82f6'; // Light Blue (V.Good)
+    else if(p >= 65) color = '#f59e0b'; // Yellow (Good)
+    else if(p < 60) color = '#ef4444'; // Red (Fail/Low)
+    document.documentElement.style.setProperty('--theme-color', color);
+  }
+
+  function animateCircularProgress(targetPercentage) {
+    let progress = document.getElementById('circularProgress');
+    let text = document.getElementById('resPctText');
+    let current = 0; let target = parseFloat(targetPercentage.toString().replace('%',''));
+    if(isNaN(target)) target = 0;
+    progress.style.background = `conic-gradient(var(--border-light) 360deg, transparent 0)`;
+    let interval = setInterval(() => {
+      current += 1; text.innerText = current + "%";
+      progress.style.background = `conic-gradient(var(--theme-color) ${current * 3.6}deg, var(--border-light) 0)`;
+      if(current >= target) { clearInterval(interval); text.innerText = targetPercentage.toString().includes('%') ? targetPercentage : targetPercentage + '%'; }
+    }, 15); 
+  }
+
+  // أكورديون السيمسترات
+  function toggleSem(element) {
+    element.classList.toggle('expanded');
+  }
+
+  // دالة الاتصال بالـ API
+  async function apiCall(action, dataObj) {
+    dataObj.action = action;
+    dataObj.apiKey = API_KEY;
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(dataObj)
+    });
+    return await response.json();
+  }
+
+  // إظهار السكيلتون لودر
+  function showSkeleton() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('skeletonLoader').style.display = 'block';
+    document.getElementById('error-1').style.display = 'none';
+    document.getElementById('error-2').style.display = 'none';
+    document.getElementById('error-admin').style.display = 'none';
+  }
+  function hideSkeleton() { document.getElementById('skeletonLoader').style.display = 'none'; }
+  function showErr(step, msg) { hideSkeleton(); document.getElementById(`screen-${step}`).classList.add('active'); document.getElementById(`error-${step}`).innerText = msg; document.getElementById(`error-${step}`).style.display = 'block'; }
+
+  window.addEventListener('hashchange', function() {
+    let currentHash = window.location.hash.substring(1) || 'screen-id';
+    if (currentHash === 'screen-id') {
+      document.getElementById('password').value = ''; document.getElementById('confirmPassword').value = ''; 
+      studentID = ""; authMode = "";
+      document.getElementById('fabContainer').style.display = 'none';
+      document.getElementById('mainHeader').style.display = 'block';
+    }
+    renderScreenOnly(currentHash);
+  });
+
+  function switchScreen(screenId) { window.location.hash = screenId; }
+
+  function renderScreenOnly(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    hideSkeleton();
+    let target = document.getElementById(screenId);
+    if(target) target.classList.add('active'); else document.getElementById('screen-id').classList.add('active');
+  }
+
+  if (!window.location.hash) window.location.hash = 'screen-id'; else renderScreenOnly(window.location.hash.substring(1));
+
+  function togglePass(iconElement, inputId) {
+    const input = document.getElementById(inputId);
+    if(input.type === "password") { input.type = "text"; iconElement.classList.replace("fa-eye", "fa-eye-slash"); iconElement.style.color="var(--theme-color)";}
+    else { input.type = "password"; iconElement.classList.replace("fa-eye-slash", "fa-eye"); iconElement.style.color="var(--text-muted)";}
+  }
+
+  async function step1CheckID() {
+    studentID = document.getElementById('nationalId').value.trim();
+    if(studentID.length < 3) return;
+    
+    // لو الأدمن دخل
+    if(studentID.toLowerCase() === "admin") { switchScreen('screen-admin'); return; }
+
+    if(document.getElementById('rememberMe').checked) { localStorage.setItem('savedNID', studentID); } 
+    else { localStorage.removeItem('savedNID'); }
+
+    showSkeleton();
+    try {
+      const res = await apiCall("check_status", { nationalId: studentID });
+      hideSkeleton();
+      if(res.status === "locked") showErr("id", `حساب محظور. جرب بعد ${res.remaining} دقيقة.`);
+      else if(res.status === "not_found") showErr("id", 'الرقم غير مسجل.');
+      else if(res.status === "new_user") {
+        authMode = 'register'; document.getElementById('authTitle').innerText = "إعداد كلمة المرور";
+        document.getElementById('authInfo').innerHTML = `أهلاً <b>${res.name}</b><br>يرجى إعداد كلمة مرور خاصة بك.`;
+        document.getElementById('confirmPassGroup').style.display = 'block'; switchScreen('screen-auth'); 
+      } else {
+        authMode = 'login'; document.getElementById('authTitle').innerText = "تسجيل الدخول";
+        document.getElementById('authInfo').innerHTML = `مرحباً <b>${res.name}</b>`;
+        document.getElementById('confirmPassGroup').style.display = 'none'; switchScreen('screen-auth'); 
+      }
+    } catch(err) { showErr("id", 'خطأ اتصال بالسيرفر.'); }
+  }
+
+  async function step2Auth() {
+    let pass = document.getElementById('password').value.trim();
+    if(!pass) { showErr("auth", 'أدخل كلمة المرور'); return; }
+    if(authMode === 'register' && pass !== document.getElementById('confirmPassword').value.trim()) { showErr("auth", 'الكلمتان غير متطابقتين.'); return; }
+    
+    showSkeleton();
+    try {
+      const action = authMode === 'register' ? "register" : "login";
+      const res = await apiCall(action, { nationalId: studentID, password: pass });
+      
+      if(res.status === "locked") { showErr("auth", `مُحظر. جرب بعد ${res.remaining} دقيقة.`); }
+      else if(res.status === "wrong_password") { showErr("auth", `كلمة مرور خاطئة (متبقي ${res.attemptsLeft})`); }
+      else if(res.status === "error") { showErr("auth", res.message || 'حدث خطأ.'); }
+      else handleResult(res);
+    } catch(err) { showErr("auth", 'خطأ اتصال بالسيرفر.'); }
+  }
+
+  async function adminReset() {
+    let pass = document.getElementById('adminPassword').value.trim();
+    let targetNid = document.getElementById('adminResetNid').value.trim();
+    if(!pass || !targetNid) { showErr("admin", "أكمل البيانات"); return; }
+    
+    showSkeleton();
+    try {
+      let loginRes = await apiCall("admin_login", { password: pass });
+      if(loginRes.status !== "success") { showErr("admin", loginRes.message); return; }
+      
+      let resetRes = await apiCall("admin_reset", { nationalId: targetNid });
+      hideSkeleton();
+      if(resetRes.status === "success") {
+        alert(resetRes.message);
+        document.getElementById('adminResetNid').value = "";
+        switchScreen('screen-id');
+      } else { showErr("admin", resetRes.message); }
+    } catch(err) { showErr("admin", 'خطأ اتصال'); }
+  }
+
+  function handleResult(res) {
+    document.getElementById('resName').innerText = res.name || '-';
+    document.getElementById('resBatch').innerText = res.batch || '-';
+    document.getElementById('resRank').innerText = res.rank || '-';
+    document.getElementById('resTotal').innerText = res.total || '-';
+    
+    finalPctValue = res.percentage || '0';
+    applyDynamicTheme(finalPctValue); // تلوين النتيجة
+    
+    setTimeout(() => { animateCircularProgress(finalPctValue); }, 400);
+
+    const container = document.getElementById('semestersContainer');
+    container.innerHTML = ''; 
+    if (res.semesters && res.semesters.length > 0) {
+      res.semesters.forEach(sem => {
+        container.innerHTML += `
+          <div class="sem-item" onclick="toggleSem(this)">
+            <div class="sem-header">
+              <div class="sem-info"><div class="sem-icon"><i class="fa-solid fa-book"></i></div><span class="sem-name">${sem.name}</span></div>
+              <span class="sem-score">${sem.score}</span>
+            </div>
+            <div class="sem-details">تفاصيل إضافية للمادة ستظهر هنا مستقبلاً عند إضافتها في قاعدة البيانات.</div>
+          </div>`;
+      });
+    }
+
+    if (res.cohortStats) {
+      if (cohortChartInstance) cohortChartInstance.destroy(); 
+      const ctx = document.getElementById('cohortChart').getContext('2d');
+      cohortChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['+95%', '90-94%', '85-89%', '80-84%', '75-79%', '70-74%', '65-69%', '60-64%', '<60%'],
+          datasets: [{
+            label: 'عدد الطلاب',
+            data: [res.cohortStats.p95, res.cohortStats.p90, res.cohortStats.p85, res.cohortStats.p80, res.cohortStats.p75, res.cohortStats.p70, res.cohortStats.p65, res.cohortStats.p60, res.cohortStats.pLow],
+            backgroundColor: ['#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#f59e0b', '#ef4444'],
+            borderRadius: 6
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } } }
+      });
+    }
+
+    document.getElementById('mainHeader').style.display = 'none'; // إخفاء الهيدر الرئيسي لتوسيع الشاشة
+    document.getElementById('fabContainer').style.display = 'flex'; // إظهار زر التحكم
+    window.location.hash = 'screen-result'; 
+  }
+</script>
+</body>
+</html>
