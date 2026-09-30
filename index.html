@@ -96,7 +96,6 @@
     .fab-main { width: 55px; height: 55px; border-radius: 50%; background: var(--theme-color); color: #fff; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; transition: transform 0.3s; }
     .fab-main.open { transform: rotate(45deg); }
 
-    /* تعديل ستايل نافذة الدعم الفني الشاملة */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 999; }
     .modal-card { background: var(--card-bg); width: 90%; max-width: 450px; padding: 25px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
     .modal-card h3 { font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
@@ -114,7 +113,6 @@
 
 <div class="wrapper">
   
-  <!-- البار العلوي في الصفحة الرئيسية (متضمن أيقونة الدعم الخارجي) -->
   <div class="top-bar" id="mainTopBar">
     <div class="action-btn" onclick="openSupport()" title="الدعم الفني / تواصل معنا"><i class="fa-solid fa-headset"></i></div>
     <div class="action-btn" onclick="toggleTheme()" title="الوضع الليلي"><i class="fa-solid fa-moon" id="themeIcon"></i></div>
@@ -136,6 +134,7 @@
     <h1>بوابة نتائج طب طنطا</h1>
   </header>
 
+  <!-- شاشة 1: الرقم القومي -->
   <div id="screen-id" class="screen active auth-card">
     <div class="input-group">
       <i class="fa-regular fa-id-card input-icon"></i>
@@ -143,7 +142,8 @@
     </div>
     <label class="remember-me"><input type="checkbox" id="rememberMe"> تذكر بياناتي</label>
     <button class="btn-main" id="btnStep1" onclick="step1CheckID()" disabled>استمرار</button>
-    <div id="error-1" class="error-msg"></div>
+    <!-- تم تصحيح الـ id ليكون error-id -->
+    <div id="error-id" class="error-msg"></div>
   </div>
 
   <div id="skeletonLoader" class="skeleton-container">
@@ -155,6 +155,7 @@
     </div>
   </div>
 
+  <!-- شاشة 2: المصادقة -->
   <div id="screen-auth" class="screen auth-card">
     <h3 id="authTitle" style="text-align:center; font-size: 18px; margin-bottom: 15px; font-weight: 900;">مصادقة الدخول</h3>
     <div id="authInfo" class="info-msg"></div>
@@ -169,7 +170,8 @@
       <i class="fa-regular fa-eye toggle-pass" onclick="togglePass(this, 'confirmPassword')"></i>
     </div>
     <button class="btn-main" onclick="step2Auth()">عرض النتائج</button>
-    <div id="error-2" class="error-msg"></div>
+    <!-- تم تصحيح الـ id ليكون error-auth -->
+    <div id="error-auth" class="error-msg"></div>
   </div>
 
   <!-- شاشة المشرف / الأدمن -->
@@ -181,6 +183,7 @@
       <i class="fa-regular fa-eye toggle-pass" onclick="togglePass(this, 'adminPassword')"></i>
     </div>
     <button class="btn-main" style="background:var(--danger)" onclick="adminLogin()">دخول للوحة التحكم</button>
+    <!-- تم تصحيح الـ id ليكون error-admin-login -->
     <div id="error-admin-login" class="error-msg"></div>
   </div>
 
@@ -201,7 +204,8 @@
         <input type="text" id="adminResetNid" placeholder="الرقم القومي لفك الحظر/المسح">
       </div>
       <button class="btn-main" style="background:var(--danger)" onclick="adminReset()">تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i></button>
-      <div id="error-admin-action" class="error-msg" style="margin-top:15px;"></div>
+      <!-- تم تصحيح الـ id ليكون error-admin-dashboard -->
+      <div id="error-admin-dashboard" class="error-msg" style="margin-top:15px;"></div>
     </div>
   </div>
 
@@ -237,7 +241,7 @@
   </div>
 </div>
 
-<!-- نافذة الدعم الفني الشاملة -->
+<!-- نافذة الدعم الفني -->
 <div class="modal-overlay" id="supportModal">
   <div class="modal-card">
     <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-headset" style="color:var(--primary)"></i> تواصل مع الدعم الفني</h3>
@@ -307,7 +311,7 @@
     document.getElementById('fabMain').classList.remove('open');
     document.getElementById('fabContainer').style.display = 'none';
     document.getElementById('mainHeader').style.display = 'block';
-    document.getElementById('mainTopBar').style.display = 'flex'; // إظهار البار العلوي تاني
+    document.getElementById('mainTopBar').style.display = 'flex'; 
     window.location.hash = 'screen-id';
     document.getElementById('password').value = '';
     validateNID();
@@ -316,9 +320,8 @@
   function openSupport() { 
     document.getElementById('supportModal').style.display = 'flex'; 
     if(document.getElementById('fabContainer').style.display !== 'none') {
-        toggleFab(); // لو فاتحها من النتيجة يقفل الـ FAB
+        toggleFab(); 
     }
-    // سحب الرقم القومي تلقائي لو الطالب كان كاتبه بره عشان ميكتبوش تاني
     let currentNidForReport = studentID || document.getElementById('nationalId').value.trim();
     if(currentNidForReport && currentNidForReport !== "admin") {
         document.getElementById('supportNid').value = currentNidForReport;
@@ -349,7 +352,7 @@
     try {
       await apiCall("report_issue", { studentName: name, nationalId: nid, phoneNum: phone, issueText: text });
       alert("تم إرسال طلبك للدعم الفني بنجاح. سيتم مراجعته في أقرب وقت.");
-      closeSupport(); // عشان تفضي الخانات
+      closeSupport(); 
     } catch(e) { alert("حدث خطأ أثناء الإرسال"); }
   }
 
@@ -389,18 +392,21 @@
     return await response.json();
   }
 
+  // **تم تحديث الدالة دي عشان تمسح رسايل الغلط القديمة وماتظهرش فوق بعضها**
   function showSkeleton() {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('skeletonLoader').style.display = 'block';
-    document.getElementById('error-1').style.display = 'none';
-    document.getElementById('error-2').style.display = 'none';
-    document.getElementById('error-admin-login').style.display = 'none';
-    document.getElementById('error-admin-action').style.display = 'none';
+    document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
   }
+  
   function hideSkeleton() { document.getElementById('skeletonLoader').style.display = 'none'; }
+  
+  // **تم تحديث الدالة دي عشان تربط بشكل صحيح باسم الشاشة واسم مربع الخطأ**
   function showErr(step, msg) { 
     hideSkeleton(); 
-    document.getElementById(`screen-${step}`).classList.add('active'); 
+    let screenNode = document.getElementById(`screen-${step}`);
+    if(screenNode) screenNode.classList.add('active'); 
+    
     let errBox = document.getElementById(`error-${step}`);
     if(errBox) { errBox.innerText = msg; errBox.style.display = 'block'; }
   }
@@ -420,6 +426,7 @@
       document.getElementById('fabContainer').style.display = 'none';
       document.getElementById('mainHeader').style.display = 'block';
       document.getElementById('mainTopBar').style.display = 'flex';
+      document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none'); // مسح الرسايل وقت الرجوع
     }
     renderScreenOnly(currentHash);
   });
@@ -458,7 +465,7 @@
       const res = await apiCall("check_status", { nationalId: studentID });
       hideSkeleton();
       if(res.status === "locked") showErr("id", `حساب محظور. جرب بعد ${res.remaining} دقيقة.`);
-      else if(res.status === "not_found") showErr("id", 'الرقم غير مسجل.');
+      else if(res.status === "not_found") showErr("id", 'الرقم القومي غير مسجل بالنظام.');
       else if(res.status === "new_user") {
         authMode = 'register'; document.getElementById('authTitle').innerText = "إعداد كلمة المرور";
         document.getElementById('authInfo').innerHTML = `أهلاً <b>${res.name}</b><br>يرجى إعداد كلمة مرور خاصة بك.`;
@@ -473,24 +480,24 @@
 
   async function step2Auth() {
     let pass = document.getElementById('password').value.trim();
-    if(!pass) { showErr("auth", 'أدخل كلمة المرور'); return; }
-    if(authMode === 'register' && pass !== document.getElementById('confirmPassword').value.trim()) { showErr("auth", 'الكلمتان غير متطابقتين.'); return; }
+    if(!pass) { showErr("auth", 'برجاء إدخال كلمة المرور'); return; }
+    if(authMode === 'register' && pass !== document.getElementById('confirmPassword').value.trim()) { showErr("auth", 'كلمتا المرور غير متطابقتين.'); return; }
     
     showSkeleton();
     try {
       const action = authMode === 'register' ? "register" : "login";
       const res = await apiCall(action, { nationalId: studentID, password: pass });
       
-      if(res.status === "locked") { showErr("auth", `مُحظر. جرب بعد ${res.remaining} دقيقة.`); }
-      else if(res.status === "wrong_password") { showErr("auth", `كلمة مرور خاطئة (متبقي ${res.attemptsLeft})`); }
-      else if(res.status === "error") { showErr("auth", res.message || 'حدث خطأ.'); }
+      if(res.status === "locked") { showErr("auth", `حساب محظور. جرب بعد ${res.remaining} دقيقة.`); }
+      else if(res.status === "wrong_password") { showErr("auth", `كلمة مرور خاطئة (المحاولات المتبقية: ${res.attemptsLeft})`); }
+      else if(res.status === "error") { showErr("auth", res.message || 'حدث خطأ غير متوقع.'); }
       else handleResult(res);
     } catch(err) { showErr("auth", 'خطأ اتصال بالسيرفر.'); }
   }
 
   async function adminLogin() {
     let pass = document.getElementById('adminPassword').value.trim();
-    if(!pass) { showErr("admin-login", "أدخل كلمة المرور"); return; }
+    if(!pass) { showErr("admin-login", "برجاء إدخال كلمة المرور"); return; }
     
     showSkeleton();
     try {
@@ -507,14 +514,14 @@
       } else {
         showErr("admin-login", res.message);
       }
-    } catch(err) { showErr("admin-login", 'خطأ اتصال'); }
+    } catch(err) { showErr("admin-login", 'خطأ في الاتصال بالخادم'); }
   }
 
   async function adminReset() {
     let targetNid = document.getElementById('adminResetNid').value.trim();
-    if(!targetNid) { showErr("admin-action", "أدخل الرقم القومي للطالب"); return; }
+    if(!targetNid) { showErr("admin-dashboard", "برجاء إدخال الرقم القومي للطالب"); return; }
     
-    document.getElementById('error-admin-action').style.display = 'none';
+    document.getElementById('error-admin-dashboard').style.display = 'none';
     let btn = document.querySelector('#screen-admin-dashboard .btn-main');
     btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري التنفيذ...';
     btn.disabled = true;
@@ -527,11 +534,11 @@
       if(res.status === "success") {
         alert(res.message);
         document.getElementById('adminResetNid').value = "";
-      } else { showErr("admin-action", res.message); }
+      } else { showErr("admin-dashboard", res.message); }
     } catch(err) { 
       btn.innerHTML = 'تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i>';
       btn.disabled = false;
-      showErr("admin-action", 'خطأ اتصال'); 
+      showErr("admin-dashboard", 'خطأ في الاتصال بالخادم'); 
     }
   }
 
