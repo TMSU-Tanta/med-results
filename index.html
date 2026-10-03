@@ -129,7 +129,6 @@
     .withheld-card h2 { font-size: 22px; color: var(--text-dark); margin-bottom: 10px; font-weight: 900;}
     .withheld-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
 
-    /* ستايلات قسم المدير العام (الماستر) */
     .master-panel { background: rgba(139, 92, 246, 0.05); border: 1px solid var(--master); border-radius: 16px; padding: 20px; margin-top: 25px; }
     .log-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border-light); font-size: 12px; }
     .log-item:last-child { border-bottom: none; }
@@ -139,6 +138,8 @@
     .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
     input:checked + .slider { background-color: var(--danger); }
     input:checked + .slider:before { transform: translateX(24px); }
+
+    .disclaimer { margin: 0 20px 20px 20px; padding: 15px; background: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 14px; text-align: center; font-size: 12px; font-weight: 700; color: var(--danger); line-height: 1.6; }
 
     @media print {
       body, .result-container { background: #fff !important; color: #000 !important; border: none !important; box-shadow: none !important; }
@@ -213,7 +214,7 @@
     <h3 style="text-align:center; color:var(--danger); font-weight:900; margin-bottom:15px;">تسجيل دخول المشرف</h3>
     <div class="input-group">
       <i class="fa-solid fa-hashtag input-icon"></i>
-      <input type="text" id="adminCodeInput" placeholder="كود المشرف">
+      <input type="text" id="adminCodeInput" placeholder="كود المشرف (مثال: admin)">
     </div>
     <div class="input-group">
       <i class="fa-solid fa-user-shield input-icon"></i>
@@ -245,7 +246,6 @@
       <div class="m-stat" style="grid-column: span 2;"><span class="title">تذاكر الدعم الفني</span><div class="val" id="adminStatRep" style="color:var(--danger);">-</div></div>
     </div>
 
-    <!-- 👑 قسم المدير العام (يظهر للماستر فقط) -->
     <div id="masterAdminSection" class="master-panel" style="display:none; margin: 0 20px;">
       <h3 class="section-head" style="color:var(--master);"><i class="fa-solid fa-crown"></i> صلاحيات المدير العام</h3>
       
@@ -334,7 +334,7 @@
       </div>
     </div>
 
-    <div class="disclaimer">لا يعتد بهذه النتيجة كمستند رسمي , فهو عمل ودي لمعرفة الترتيب والدرجات ولا علاقة له بالكلية</div>
+    <div class="disclaimer">لا يعتد بهذه النتيجة كمستند رسمي ، فهو عمل ودي لمعرفة الترتيب والدرجات ولا علاقة له بالكلية</div>
   </div>
 </div>
 
@@ -381,6 +381,31 @@
   let activeAdminCode = ""; let activeAdminPass = ""; 
   let cohortChartInstance = null; let progressLineChartInstance = null; 
   let finalPctValue = 0; let chartDataCache = null; let lineChartDataCache = null;
+
+  // دالة ذكية لتحويل الوقت لـ 12 ساعة (ص / م)
+  function formatDateTime12(dateStr, hideYear = false) {
+    if (!dateStr) return "";
+    let str = dateStr.toString().replace('T', ' ');
+    let parts = str.split(' ');
+    if (parts.length < 2) return str;
+    
+    let datePart = parts[0];
+    if (hideYear && datePart.length > 5) {
+        datePart = datePart.substring(5); 
+    }
+    
+    let timeParts = parts[1].split(':');
+    if (timeParts.length < 2) return str;
+    
+    let h = parseInt(timeParts[0], 10);
+    let m = timeParts[1];
+    let ampm = h >= 12 ? 'م' : 'ص';
+    
+    h = h % 12;
+    h = h ? h : 12; // تحويل الصفر لـ 12
+    
+    return `${datePart} - ${h}:${m} ${ampm}`;
+  }
 
   function showToast(msg, type="primary", duration=4000) {
     const container = document.getElementById('toast-container');
@@ -558,8 +583,8 @@
          document.getElementById('mainHeader').style.display = 'none'; 
          switchScreen('screen-maintenance'); return;
       }
-      else if(res.status === "locked") showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error");
-      else if(res.status === "not_found") showToast('الرقم القومي غير مسجل بالنظام.', "error");
+      else if(res.status === "locked") { renderScreenOnly('screen-id'); showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error"); }
+      else if(res.status === "not_found") { renderScreenOnly('screen-id'); showToast('الرقم القومي غير مسجل بالنظام.', "error"); }
       else {
         let replyHtml = "";
         if(res.adminReply && res.adminReply !== "") {
@@ -576,7 +601,7 @@
           document.getElementById('confirmPassGroup').style.display = 'none'; switchScreen('screen-auth'); 
         }
       }
-    } catch(err) { hideSkeleton(); showToast('خطأ اتصال بالسيرفر.', "error"); switchScreen('screen-id');}
+    } catch(err) { hideSkeleton(); renderScreenOnly('screen-id'); showToast('خطأ اتصال بالسيرفر.', "error"); }
   }
 
   async function step2Auth() {
@@ -592,17 +617,17 @@
       hideSkeleton();
       
       if(res.status === "maintenance") { document.getElementById('mainHeader').style.display = 'none'; switchScreen('screen-maintenance');}
-      else if(res.status === "locked") { showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error"); switchScreen('screen-id');}
-      else if(res.status === "wrong_password") { showToast(`كلمة مرور خاطئة (المحاولات المتبقية: ${res.attemptsLeft})`, "error"); }
+      else if(res.status === "locked") { renderScreenOnly('screen-id'); showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error"); }
+      else if(res.status === "wrong_password") { renderScreenOnly('screen-auth'); showToast(`كلمة مرور خاطئة (المحاولات المتبقية: ${res.attemptsLeft})`, "error"); }
       else if(res.status === "withheld") {
          document.getElementById('withheldName').innerText = res.name;
          document.getElementById('mainHeader').style.display = 'none'; 
          document.getElementById('mainTopBar').style.display = 'flex'; 
          switchScreen('screen-withheld');
       }
-      else if(res.status === "error") { showToast(res.message || 'حدث خطأ غير متوقع.', "error"); }
+      else if(res.status === "error") { renderScreenOnly('screen-auth'); showToast(res.message || 'حدث خطأ غير متوقع.', "error"); }
       else handleResult(res);
-    } catch(err) { hideSkeleton(); showToast('خطأ اتصال بالسيرفر.', "error"); }
+    } catch(err) { hideSkeleton(); renderScreenOnly('screen-auth'); showToast('خطأ اتصال بالسيرفر.', "error"); }
   }
 
   // ==========================================
@@ -620,13 +645,16 @@
       if(res.status === "success") {
         activeAdminCode = code; activeAdminPass = pass;
         
-        // تفعيل وضع المدير العام
         if(res.role === "master") {
             document.getElementById('masterAdminSection').style.display = 'block';
             document.getElementById('maintenanceToggle').checked = res.isMaintenance;
             let logsHtml = "";
             if(res.adminLogs) {
-                res.adminLogs.forEach(l => { logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted)">${l.date.substring(5,16)}</span></div>`; });
+                res.adminLogs.forEach(l => { 
+                    // تحويل التاريخ لـ 12 ساعة
+                    let formattedDate = formatDateTime12(l.date, true);
+                    logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted); font-size:11px;">${formattedDate}</span></div>`; 
+                });
             }
             document.getElementById('adminLogsContainer').innerHTML = logsHtml;
         } else { document.getElementById('masterAdminSection').style.display = 'none'; }
@@ -643,6 +671,9 @@
             let btnAction = isAutoBan 
               ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>`
               : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`;
+            
+            // تحويل التاريخ لـ 12 ساعة
+            let formattedDate = formatDateTime12(issue.date, false);
 
             reportsHtml += `
               <div class="issue-card" id="issue-card-${issue.rowIdx}">
@@ -650,7 +681,7 @@
                 ${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}
                 <div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                  <span style="font-size:11px; color:var(--text-muted);">${issue.date.substring(0, 10)}</span>
+                  <span style="font-size:11px; color:var(--text-muted);">${formattedDate}</span>
                   ${btnAction}
                 </div>
               </div>`;
@@ -662,17 +693,27 @@
         document.getElementById('mainTopBar').style.display = 'none';
         document.getElementById('fabContainer').style.display = 'flex';
         switchScreen('screen-admin-dashboard');
-      } else { showToast(res.message, "error"); activeAdminCode = ""; activeAdminPass = ""; }
-    } catch(err) { hideSkeleton(); showToast('خطأ في الاتصال بالخادم', "error"); }
+      } else { hideSkeleton(); renderScreenOnly('screen-admin-login'); showToast(res.message, "error"); activeAdminCode = ""; activeAdminPass = ""; }
+    } catch(err) { hideSkeleton(); renderScreenOnly('screen-admin-login'); showToast('خطأ في الاتصال بالخادم', "error"); }
   }
 
-  // دوال המנהل العام
   async function toggleMaintenance() {
+    let toggleBtn = document.getElementById('maintenanceToggle');
+    toggleBtn.disabled = true;
     try {
       let res = await apiCall("toggle_maintenance", { adminCode: activeAdminCode, adminPass: activeAdminPass });
-      if(res.status === "success") { showToast(res.isMaintenance ? "تم إغلاق الموقع للصيانة" : "تم فتح الموقع للطلبة", "success"); } 
-      else { showToast("خطأ في الصلاحيات", "error"); }
-    } catch(e) { showToast("خطأ اتصال", "error"); }
+      if(res.status === "success") { 
+         showToast(res.isMaintenance ? "تم إغلاق الموقع للصيانة" : "تم فتح الموقع للطلبة", "success"); 
+         toggleBtn.checked = res.isMaintenance;
+      } else { 
+         showToast("خطأ في الصلاحيات", "error"); 
+         toggleBtn.checked = !toggleBtn.checked;
+      }
+    } catch(e) { 
+      showToast("خطأ اتصال", "error"); 
+      toggleBtn.checked = !toggleBtn.checked;
+    }
+    toggleBtn.disabled = false;
   }
 
   async function cleanReports() {
@@ -801,7 +842,7 @@
     document.getElementById('resNid').innerText = res.nid || studentID;
     document.getElementById('resBatch').innerText = res.batch || '-';
     document.getElementById('resRank').innerText = res.rank || '-';
-    
+
     let totalHtml = res.total || '-';
     if (res.totalMax && res.total !== '-') { totalHtml = `${res.total} <span style="font-size:14px; opacity:0.6">/ ${res.totalMax}</span>`; }
     document.getElementById('resTotal').innerHTML = totalHtml;
