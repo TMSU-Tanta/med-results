@@ -4,9 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>بوابة نتائج طب طنطا</title>
+  
+  <!-- إعدادات المشاركة -->
+  <meta property="og:title" content="بوابة نتائج طب طنطا | النظام المركزي">
+  <meta property="og:description" content="استعلم الآن عن نتيجتك الأكاديمية والترتيب العام على الدفعة بسهولة وأمان.">
+  <meta property="og:type" content="website">
+
   <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- مكتبة الألعاب النارية للأوائل -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -32,8 +40,8 @@
     .input-group { margin-bottom: 15px; position: relative; }
     .input-icon { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
     .toggle-pass { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; padding: 10px; }
-    .input-group input { width: 100%; padding: 18px 45px; background: var(--bg-body); border: 1.5px solid var(--border-light); border-radius: 16px; font-size: 16px; font-family: inherit; font-weight: 700; color: var(--text-dark); transition: border-color 0.2s; }
-    .input-group input:focus { border-color: var(--primary); outline: none; background: var(--card-bg); }
+    .input-group input, .input-group select { width: 100%; padding: 18px 45px; background: var(--bg-body); border: 1.5px solid var(--border-light); border-radius: 16px; font-size: 16px; font-family: inherit; font-weight: 700; color: var(--text-dark); transition: border-color 0.2s; }
+    .input-group input:focus, .input-group select:focus { border-color: var(--primary); outline: none; background: var(--card-bg); }
     
     .remember-me { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; cursor: pointer; }
     .remember-me input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
@@ -50,7 +58,6 @@
     .sk-title { width: 60%; height: 20px; margin: 0 auto 20px auto; }
     .sk-box { width: 100%; height: 80px; margin-bottom: 15px; border-radius: 16px; }
 
-    .error-msg { display: none; background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 15px; border-radius: 12px; text-align: center; margin-top: 15px; font-size: 13px; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.2); }
     .info-msg { background: rgba(37, 99, 235, 0.1); color: var(--primary); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px; font-size: 13px; font-weight: 700; border: 1px solid var(--border-light); line-height: 1.6;}
     
     .result-container { background: var(--card-bg); border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); border: 1px solid var(--theme-color); padding-bottom: 20px; overflow: hidden; transition: border-color 0.4s;}
@@ -58,7 +65,11 @@
     .student-profile-card { background: linear-gradient(135deg, var(--theme-color), #0f172a); color: #fff; padding: 25px 20px; text-align: center; border-bottom: 4px solid var(--gold); }
     .profile-avatar { width: 70px; height: 70px; margin: 0 auto 12px auto; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; color: #fff; }
     .student-profile-card h2 { font-size: 20px; font-weight: 900; margin-bottom: 5px; }
+    .student-profile-card p { font-size: 12px; opacity: 0.8; margin-bottom: 8px; }
     .student-profile-card .badge { background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; border: 1px solid rgba(255,255,255,0.1); display: inline-block; }
+
+    /* تشويش الخصوصية */
+    .blur-mode .sensitive-data { filter: blur(6px); user-select: none; transition: filter 0.3s; }
 
     .progress-section { padding: 30px 20px; display: flex; flex-direction: column; align-items: center; background: linear-gradient(to bottom, var(--card-bg), var(--bg-body)); }
     .circular-progress { position: relative; width: 140px; height: 140px; border-radius: 50%; background: conic-gradient(var(--border-light) 100%, transparent 0); display: flex; justify-content: center; align-items: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -84,7 +95,7 @@
     .sem-score { font-size: 18px; font-weight: 900; color: var(--theme-color); background: var(--card-bg); padding: 4px 12px; border-radius: 10px; border: 1px solid var(--border-light);}
     
     .chart-wrapper { padding: 15px 20px 25px 20px; border-top: 1px dashed var(--border-light); }
-    .chart-container-box { width: 100%; height: 250px; position: relative; background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 16px; padding: 10px;}
+    .chart-container-box { width: 100%; height: 250px; position: relative; background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 16px; padding: 10px; margin-bottom: 15px;}
 
     .disclaimer { margin: 0 20px 20px 20px; padding: 15px; background: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 14px; text-align: center; font-size: 12px; font-weight: 700; color: var(--danger); line-height: 1.6; }
 
@@ -98,7 +109,7 @@
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 999; }
     .modal-card { background: var(--card-bg); width: 90%; max-width: 450px; padding: 25px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
-    .modal-card h3 { font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
+    .modal-card h3 { font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
     .modal-card textarea { width: 100%; height: 90px; padding: 15px; border-radius: 12px; border: 1px solid var(--border-light); background: var(--bg-body); font-family: inherit; font-size: 14px; margin-bottom: 15px; resize: none; color: var(--text-dark);}
     .modal-card textarea:focus { outline: none; border-color: var(--primary); }
 
@@ -107,6 +118,25 @@
     .issue-card p { margin-bottom: 5px; font-size: 13px; color: var(--text-dark); }
     .issue-card .issue-text { background: var(--card-bg); padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600; border: 1px solid var(--border-light); margin: 10px 0; }
     .resolve-btn { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+    /* ستايلات الـ Toast Notification الفخمة */
+    #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none;}
+    .toast-msg { background: var(--card-bg); color: var(--text-dark); padding: 15px 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-right: 5px solid var(--theme-color); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; animation: slideDown 0.4s ease forwards; pointer-events: auto;}
+    .toast-msg.error { border-color: var(--danger); }
+    .toast-msg.success { border-color: var(--success); }
+    .toast-msg.gold { border-color: var(--gold); background: linear-gradient(135deg, #fff, #fffbeb); }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+
+    /* إشعار رد الدعم الفني */
+    .admin-reply-banner { margin: 20px; padding: 15px; background: linear-gradient(135deg, var(--success), #047857); color: #fff; border-radius: 16px; font-size: 13px; font-weight: 700; line-height: 1.6; display: flex; gap: 12px; align-items: flex-start; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2); }
+    .admin-reply-banner i { font-size: 20px; margin-top: 2px; }
+
+    /* شاشة النتيجة المحجوبة */
+    .withheld-card { text-align: center; padding: 40px 20px; }
+    .withheld-card i { font-size: 60px; color: var(--danger); margin-bottom: 20px; }
+    .withheld-card h2 { font-size: 22px; color: var(--text-dark); margin-bottom: 10px; font-weight: 900;}
+    .withheld-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
 
     @media print {
       body, .result-container { background: #fff !important; color: #000 !important; border: none !important; box-shadow: none !important; }
@@ -117,11 +147,15 @@
 </head>
 <body>
 
-<div class="wrapper">
+<div id="toast-container"></div>
+
+<div class="wrapper" id="mainWrapper">
   
   <div class="top-bar" id="mainTopBar">
     <div class="action-btn" onclick="openSupport()" title="الدعم الفني / تواصل معنا"><i class="fa-solid fa-headset"></i></div>
     <div class="action-btn" onclick="toggleTheme()" title="الوضع الليلي"><i class="fa-solid fa-moon" id="themeIcon"></i></div>
+    <!-- زر الخصوصية -->
+    <div class="action-btn" onclick="togglePrivacy()" title="إخفاء البيانات للسكرين شوت" id="privacyBtn" style="display:none;"><i class="fa-solid fa-eye-slash"></i></div>
   </div>
 
   <div class="fab-container" id="fabContainer" style="display:none;">
@@ -143,11 +177,10 @@
   <div id="screen-id" class="screen active auth-card">
     <div class="input-group">
       <i class="fa-regular fa-id-card input-icon"></i>
-      <input type="text" id="nationalId" placeholder="أدخل الرقم القومي" oninput="validateNID()">
+      <input type="text" id="nationalId" placeholder="الرقم القومي (أو اكتب admin للدخول)" oninput="validateNID()">
     </div>
     <label class="remember-me"><input type="checkbox" id="rememberMe"> تذكر بياناتي</label>
     <button class="btn-main" id="btnStep1" onclick="step1CheckID()" disabled>استمرار</button>
-    <div id="error-id" class="error-msg"></div>
   </div>
 
   <div id="skeletonLoader" class="skeleton-container">
@@ -161,7 +194,7 @@
 
   <div id="screen-auth" class="screen auth-card">
     <h3 id="authTitle" style="text-align:center; font-size: 18px; margin-bottom: 15px; font-weight: 900;">مصادقة الدخول</h3>
-    <div id="authInfo" class="info-msg"></div>
+    <div id="authInfo" class="info-msg sensitive-data"></div>
     <div class="input-group">
       <i class="fa-solid fa-lock input-icon"></i>
       <input type="password" id="password" placeholder="كلمة المرور">
@@ -173,30 +206,44 @@
       <i class="fa-regular fa-eye toggle-pass" onclick="togglePass(this, 'confirmPassword')"></i>
     </div>
     <button class="btn-main" onclick="step2Auth()">عرض النتائج</button>
-    <div id="error-auth" class="error-msg"></div>
   </div>
 
+  <!-- تم تعديل شاشة المشرف لطلب الكود وكلمة المرور -->
   <div id="screen-admin-login" class="screen auth-card">
     <h3 style="text-align:center; color:var(--danger); font-weight:900; margin-bottom:15px;">تسجيل دخول المشرف</h3>
+    <div class="input-group">
+      <i class="fa-solid fa-hashtag input-icon"></i>
+      <input type="text" id="adminCodeInput" placeholder="كود المشرف (مثال: admin)">
+    </div>
     <div class="input-group">
       <i class="fa-solid fa-user-shield input-icon"></i>
       <input type="password" id="adminPassword" placeholder="كلمة مرور الإدارة">
       <i class="fa-regular fa-eye toggle-pass" onclick="togglePass(this, 'adminPassword')"></i>
     </div>
-    <button class="btn-main" style="background:var(--danger)" onclick="adminLogin()">دخول للوحة التحكم</button>
-    <div id="error-admin-login" class="error-msg"></div>
+    <button class="btn-main" style="background:var(--danger)" id="btnAdminEnter" onclick="adminLogin()">دخول للوحة التحكم</button>
   </div>
 
   <div id="screen-admin-dashboard" class="screen result-container" style="border-color: var(--danger);">
     <div class="student-profile-card" style="background: linear-gradient(135deg, var(--danger), #0f172a); border-bottom-color: #fca5a5;">
       <div class="profile-avatar"><i class="fa-solid fa-user-gear"></i></div>
       <h2>لوحة تحكم النظام</h2>
+      <p id="adminBadgeName">مرحباً، المشرف</p>
     </div>
 
-    <div class="mini-stats" style="margin-top:25px;">
+    <!-- كشاف الطلبة -->
+    <div class="sems-wrapper" style="padding-top:20px;">
+      <h3 class="section-head" style="color:var(--primary);"><i class="fa-solid fa-magnifying-glass"></i> كشاف الطلبة</h3>
+      <div class="input-group" style="margin-bottom:10px;">
+        <input type="text" id="adminSearchNid" placeholder="الرقم القومي للطالب">
+      </div>
+      <button class="btn-main" onclick="adminQuickSearch()" style="padding:12px; font-size:14px;">بحث سريع</button>
+      <div id="adminSearchResult" style="margin-top:15px; display:none; background:var(--bg-body); padding:15px; border-radius:12px; border:1px solid var(--border-light); font-size:13px; line-height:1.8;"></div>
+    </div>
+
+    <div class="mini-stats" style="margin-top:10px; border-top: 1px dashed var(--border-light); padding-top:20px;">
       <div class="m-stat"><span class="title">إجمالي الطلبة</span><div class="val" id="adminStatTotal">-</div></div>
       <div class="m-stat"><span class="title">مسجلين حسابات</span><div class="val" id="adminStatReg">-</div></div>
-      <div class="m-stat" style="grid-column: span 2;"><span class="title">شكاوى قيد الانتظار</span><div class="val" id="adminStatRep" style="color:var(--danger);">-</div></div>
+      <div class="m-stat" style="grid-column: span 2;"><span class="title">تذاكر الدعم الفني</span><div class="val" id="adminStatRep" style="color:var(--danger);">-</div></div>
     </div>
 
     <div class="sems-wrapper" style="border-top: 1px dashed var(--border-light); margin-top:20px;">
@@ -206,24 +253,34 @@
         <input type="text" id="adminResetNid" placeholder="الرقم القومي لفك الحظر/المسح">
       </div>
       <button class="btn-main" style="background:var(--danger)" onclick="adminReset()">تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i></button>
-      <div id="error-admin-dashboard" class="error-msg" style="margin-top:15px;"></div>
     </div>
 
-    <!-- قسم الشكاوى الجديد -->
     <div class="sems-wrapper" style="border-top: 1px dashed var(--border-light);">
-      <h3 class="section-head" style="color:var(--danger);"><i class="fa-solid fa-envelope-open-text"></i> تذاكر الدعم الفني</h3>
-      <div id="adminReportsContainer">
-        <!-- ستظهر الشكاوى هنا -->
-      </div>
+      <h3 class="section-head" style="color:var(--danger);"><i class="fa-solid fa-envelope-open-text"></i> تذاكر الدعم والشكاوى</h3>
+      <div id="adminReportsContainer"></div>
+    </div>
+  </div>
+
+  <!-- شاشة الحجب -->
+  <div id="screen-withheld" class="screen result-container">
+    <div class="withheld-card">
+      <i class="fa-solid fa-lock"></i>
+      <h2>النتيجة محجوبة</h2>
+      <p>عفواً <b id="withheldName" class="sensitive-data"></b>، نتيجتك قيد المراجعة حالياً. يرجى التوجه لشئون الطلبة أو مراسلة الدعم الفني لمزيد من التفاصيل.</p>
+      <button class="btn-main" style="margin-top:25px;" onclick="openSupport()">مراسلة الدعم الفني</button>
     </div>
   </div>
 
   <div id="screen-result" class="screen result-container">
     <div class="student-profile-card">
       <div class="profile-avatar"><i class="fa-solid fa-user-graduate"></i></div>
-      <h2 id="resName">-</h2>
+      <h2 id="resName" class="sensitive-data">-</h2>
+      <p id="resNid" class="sensitive-data" style="font-family: monospace; font-size: 14px; opacity:0.9">-</p>
       <div class="badge" id="resBatch">-</div>
     </div>
+
+    <!-- إشعار الدعم الفني للطالب -->
+    <div id="adminReplyBox" style="display:none;"></div>
 
     <div class="progress-section">
       <div class="circular-progress" id="circularProgress"><div class="progress-value"><div id="resPctText">0%</div><span>النسبة المئوية</span></div></div>
@@ -238,6 +295,14 @@
       <div id="semestersContainer"></div>
     </div>
 
+    <!-- التشارت الخطي للتطور -->
+    <div class="chart-wrapper">
+      <h3 class="section-head"><i class="fa-solid fa-chart-line"></i> تطور المستوى</h3>
+      <div class="chart-container-box">
+        <canvas id="progressLineChart"></canvas>
+      </div>
+    </div>
+
     <div class="chart-wrapper">
       <h3 class="section-head"><i class="fa-solid fa-chart-simple"></i> تحليل الدفعة</h3>
       <div class="chart-container-box">
@@ -245,7 +310,7 @@
       </div>
     </div>
 
-    <div class="disclaimer">لا يعتد بهذه النتيجة كمستند رسمي , فهو عمل ودي بين الطلبة لمعرفة الترتيب والدرجات ولا علاقة له بالكلية</div>
+    <div class="disclaimer">لا يعتد بهذه النتيجة كمستند رسمي , فهو عمل ودي لمعرفة الترتيب والدرجات ولا علاقة له بالكلية</div>
   </div>
 </div>
 
@@ -257,36 +322,70 @@
     <div class="input-group" style="margin-bottom: 12px;"><input type="tel" id="supportPhone" placeholder="رقم الهاتف (للتواصل)" style="padding: 12px 15px;" dir="ltr"></div>
     <textarea id="issueText" placeholder="اكتب مشكلتك بالتفصيل هنا..." style="margin-bottom: 15px; height: 80px;"></textarea>
     <div style="display:flex; gap:10px;">
-      <button class="btn-main" onclick="submitIssue()" style="margin-top: 0; padding: 12px;">إرسال الطلب</button>
+      <button class="btn-main" id="btnSubmitSupport" onclick="submitIssue()" style="margin-top: 0; padding: 12px;">إرسال الطلب</button>
       <button class="btn-main" style="background:var(--bg-body); color:var(--text-dark); margin-top: 0; padding: 12px;" onclick="closeSupport()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة حل المشكلة للمشرف -->
+<div class="modal-overlay" id="resolveModal">
+  <div class="modal-card">
+    <h3 style="margin-bottom: 15px; color:var(--success)"><i class="fa-solid fa-check-circle"></i> حل المشكلة</h3>
+    <div class="input-group" style="margin-bottom: 12px;">
+      <select id="resolvePreset" onchange="document.getElementById('resolveCustomText').value = this.value" style="padding: 12px 15px;">
+        <option value="">اختر رد جاهز...</option>
+        <option value="تم مراجعة الشيت وتعديل النتيجة بناءً على طلبك.">تم مراجعة الشيت وتعديل النتيجة.</option>
+        <option value="تم فك الحظر عن حسابك، يمكنك تسجيل الدخول الآن.">تم فك الحظر عن حسابك.</option>
+      </select>
+    </div>
+    <textarea id="resolveCustomText" placeholder="أو اكتب رداً مخصصاً للطالب..." style="margin-bottom: 15px; height: 80px;"></textarea>
+    <input type="hidden" id="resolveTargetRow">
+    <div style="display:flex; gap:10px;">
+      <button class="btn-main" id="btnSubmitResolve" style="background:var(--success); margin-top: 0; padding: 12px;" onclick="confirmResolve()">إرسال الرد وإغلاق</button>
+      <button class="btn-main" style="background:var(--bg-body); color:var(--text-dark); margin-top: 0; padding: 12px;" onclick="closeResolveModal()">إلغاء</button>
     </div>
   </div>
 </div>
 
 <script>
   // ==========================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpVk1pILAdpSaQll_L2v5t7z-rYLZOw5oKC3-Tc4Z3eo_R3I9h9hCbJ9qf3v1kwXKz/exec"; 
+  // رابط الـ Web App الخاص بك
+  // ==========================================
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5tilFd3TlQnqqCjMqdCvZOpPAm9E7uy_NueSOgjq3rzYtgrwps78YZTuBUKwCh_1o/exec"; 
   const API_KEY = "TANTA_MED_2026_SECURE41";
 
-  let studentID = ""; let authMode = ""; let cohortChartInstance = null; let finalPctValue = 0; 
-  let chartDataCache = null; 
+  let studentID = ""; let authMode = ""; 
+  let activeAdminCode = ""; let activeAdminPass = ""; 
+  let cohortChartInstance = null; let progressLineChartInstance = null; 
+  let finalPctValue = 0; let chartDataCache = null; let lineChartDataCache = null;
+
+  // نظام التنبيهات (Toast) بديل الـ alert
+  function showToast(msg, type="primary", duration=4000) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast-msg ${type}`;
+    let icon = "fa-circle-info";
+    if(type==="error") icon = "fa-circle-xmark";
+    else if(type==="success") icon = "fa-circle-check";
+    else if(type==="gold") icon = "fa-trophy";
+    toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${msg}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => { toast.style.animation = 'fadeOut 0.4s ease forwards'; setTimeout(() => toast.remove(), 400); }, duration);
+  }
 
   window.onload = function() {
     let savedNID = localStorage.getItem('savedNID');
     if(savedNID) { document.getElementById('nationalId').value = savedNID; document.getElementById('rememberMe').checked = true; validateNID(); }
-    
     let initialHash = window.location.hash.substring(1);
     if (!initialHash || (initialHash !== 'screen-id' && currentHash !== 'screen-admin-login' && studentID === "")) {
-        window.location.hash = 'screen-id';
-        renderScreenOnly('screen-id');
-    } else {
-        renderScreenOnly(initialHash);
-    }
+        window.location.hash = 'screen-id'; renderScreenOnly('screen-id');
+    } else { renderScreenOnly(initialHash); }
   };
 
   function validateNID() {
     const input = document.getElementById('nationalId').value.trim();
-    if (input.length >= 3) { document.getElementById('btnStep1').disabled = false; } else { document.getElementById('btnStep1').disabled = true; }
+    if (input.length >= 3 || input.toLowerCase() === 'admin') { document.getElementById('btnStep1').disabled = false; } else { document.getElementById('btnStep1').disabled = true; }
   }
 
   function toggleTheme() { 
@@ -298,6 +397,15 @@
     }
   }
 
+  function togglePrivacy() {
+    document.getElementById('mainWrapper').classList.toggle('blur-mode');
+    let btn = document.getElementById('privacyBtn');
+    if(document.getElementById('mainWrapper').classList.contains('blur-mode')) {
+        btn.innerHTML = '<i class="fa-solid fa-eye" style="color:var(--danger)"></i>';
+        showToast("تم إخفاء البيانات الحساسة للسكرين شوت", "success");
+    } else { btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>'; }
+  }
+
   function toggleFab() { document.getElementById('fabMenu').classList.toggle('open'); document.getElementById('fabMain').classList.toggle('open'); }
 
   function logout() {
@@ -306,16 +414,27 @@
     document.getElementById('fabContainer').style.display = 'none';
     document.getElementById('mainHeader').style.display = 'block';
     document.getElementById('mainTopBar').style.display = 'flex'; 
+    document.getElementById('privacyBtn').style.display = 'none';
+    document.getElementById('mainWrapper').classList.remove('blur-mode');
+    document.getElementById('privacyBtn').innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
     window.location.hash = 'screen-id';
     document.getElementById('password').value = '';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('adminCodeInput').value = '';
+    activeAdminCode = ""; activeAdminPass = "";
     validateNID();
   }
+
+  // نظام حماية لتسجيل الخروج التلقائي
+  let timeout;
+  function resetTimer() { clearTimeout(timeout); timeout = setTimeout(() => { if(window.location.hash === '#screen-result' || window.location.hash === '#screen-admin-dashboard') { logout(); showToast("تم تسجيل الخروج أوتوماتيكياً للحماية", "error"); } }, 180000); }
+  document.onmousemove = resetTimer; document.onkeypress = resetTimer; document.ontouchstart = resetTimer;
 
   function openSupport() { 
     document.getElementById('supportModal').style.display = 'flex'; 
     if(document.getElementById('fabContainer').style.display !== 'none') toggleFab(); 
     let currentNidForReport = studentID || document.getElementById('nationalId').value.trim();
-    if(currentNidForReport && currentNidForReport !== "admin") { document.getElementById('supportNid').value = currentNidForReport; }
+    if(currentNidForReport && currentNidForReport.toLowerCase() !== "admin") { document.getElementById('supportNid').value = currentNidForReport; }
   }
   
   function closeSupport() { 
@@ -329,23 +448,21 @@
     const nid = document.getElementById('supportNid').value.trim();
     const phone = document.getElementById('supportPhone').value.trim();
     const text = document.getElementById('issueText').value.trim();
-    
-    if(!name || !nid || !phone || !text) { alert("يرجى إكمال جميع البيانات المطلوبة!"); return; }
-
-    document.getElementById('supportModal').style.display = 'none';
-    alert("جاري الإرسال...");
+    if(!name || !nid || !phone || !text) { showToast("يرجى إكمال جميع البيانات المطلوبة!", "error"); return; }
+    let btn = document.getElementById('btnSubmitSupport');
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري الإرسال'; btn.disabled = true;
     try {
       await apiCall("report_issue", { studentName: name, nationalId: nid, phoneNum: phone, issueText: text });
-      alert("تم إرسال طلبك للدعم الفني بنجاح. سيتم مراجعته في أقرب وقت.");
-      closeSupport(); 
-    } catch(e) { alert("حدث خطأ أثناء الإرسال"); }
+      showToast("تم إرسال طلبك بنجاح. سيتم مراجعته.", "success"); closeSupport(); 
+    } catch(e) { showToast("حدث خطأ أثناء الإرسال", "error"); }
+    btn.innerHTML = 'إرسال الطلب'; btn.disabled = false;
   }
 
   function shareResult() {
     const name = document.getElementById('resName').innerText; const rank = document.getElementById('resRank').innerText;
-    const shareText = `نتيجة طب طنطا:\nالاسم: ${name}\nالنسبة: ${finalPctValue}%\nالترتيب: ${rank}\n`;
+    const shareText = `نتيجة طب طنطا:\nالنسبة: ${finalPctValue}%\nالترتيب: ${rank}\n`;
     if (navigator.share) { navigator.share({ title: 'نتيجتي', text: shareText }).catch(e=>{}); toggleFab(); } 
-    else { navigator.clipboard.writeText(shareText); alert("تم النسخ للحافظة!"); toggleFab(); }
+    else { navigator.clipboard.writeText(shareText); showToast("تم نسخ النتيجة للحافظة!", "success"); toggleFab(); }
   }
 
   function applyDynamicTheme(pct) {
@@ -373,36 +490,13 @@
     return await response.json();
   }
 
-  function showSkeleton() {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('skeletonLoader').style.display = 'block';
-    document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none');
-  }
-  
+  function showSkeleton() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('skeletonLoader').style.display = 'block'; }
   function hideSkeleton() { document.getElementById('skeletonLoader').style.display = 'none'; }
-  
-  function showErr(step, msg) { 
-    hideSkeleton(); 
-    let screenNode = document.getElementById(`screen-${step}`);
-    if(screenNode) screenNode.classList.add('active'); 
-    let errBox = document.getElementById(`error-${step}`);
-    if(errBox) { errBox.innerText = msg; errBox.style.display = 'block'; }
-  }
 
   window.addEventListener('hashchange', function() {
     let currentHash = window.location.hash.substring(1) || 'screen-id';
-    
-    if (currentHash !== 'screen-id' && currentHash !== 'screen-admin-login' && studentID === "") { window.location.hash = 'screen-id'; return; }
-
-    if (currentHash === 'screen-id') {
-      document.getElementById('password').value = ''; 
-      if(document.getElementById('confirmPassword')) document.getElementById('confirmPassword').value = ''; 
-      studentID = ""; authMode = "";
-      document.getElementById('fabContainer').style.display = 'none';
-      document.getElementById('mainHeader').style.display = 'block';
-      document.getElementById('mainTopBar').style.display = 'flex';
-      document.querySelectorAll('.error-msg').forEach(el => el.style.display = 'none'); 
-    }
+    if (currentHash !== 'screen-id' && currentHash !== 'screen-admin-login' && studentID === "" && activeAdminCode === "") { window.location.hash = 'screen-id'; return; }
+    if (currentHash === 'screen-id') { logout(); }
     renderScreenOnly(currentHash);
   });
 
@@ -413,23 +507,27 @@
     hideSkeleton();
     let target = document.getElementById(screenId);
     if(target) target.classList.add('active'); else document.getElementById('screen-id').classList.add('active');
-
-    if(screenId === 'screen-result' && chartDataCache) { setTimeout(() => { drawChart(chartDataCache); }, 200); }
+    if(screenId === 'screen-result') { 
+        if(chartDataCache) setTimeout(() => { drawChart(chartDataCache); }, 200); 
+        if(lineChartDataCache) setTimeout(() => { drawLineChart(lineChartDataCache); }, 200);
+    }
   }
 
   function togglePass(iconElement, inputId) {
     const input = document.getElementById(inputId);
-    let iconColor = inputId === 'adminPassword' ? "var(--danger)" : "var(--theme-color)";
-    if(input.type === "password") { input.type = "text"; iconElement.classList.replace("fa-eye", "fa-eye-slash"); iconElement.style.color=iconColor;}
+    if(input.type === "password") { input.type = "text"; iconElement.classList.replace("fa-eye", "fa-eye-slash"); iconElement.style.color="var(--theme-color)";}
     else { input.type = "password"; iconElement.classList.replace("fa-eye-slash", "fa-eye"); iconElement.style.color="var(--text-muted)";}
   }
 
   async function step1CheckID() {
-    studentID = document.getElementById('nationalId').value.trim();
-    if(studentID.length < 3) return;
+    let inputVal = document.getElementById('nationalId').value.trim();
+    if(inputVal.length < 3) return;
     
-    if(studentID.toLowerCase() === "admin") { switchScreen('screen-admin-login'); return; }
+    if(inputVal.toLowerCase() === "admin") { 
+        switchScreen('screen-admin-login'); return; 
+    }
 
+    studentID = inputVal;
     if(document.getElementById('rememberMe').checked) { localStorage.setItem('savedNID', studentID); } 
     else { localStorage.removeItem('savedNID'); }
 
@@ -437,125 +535,171 @@
     try {
       const res = await apiCall("check_status", { nationalId: studentID });
       hideSkeleton();
-      if(res.status === "locked") showErr("id", `حساب محظور. جرب بعد ${res.remaining} دقيقة.`);
-      else if(res.status === "not_found") showErr("id", 'الرقم القومي غير مسجل بالنظام.');
+      if(res.status === "locked") showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error");
+      else if(res.status === "not_found") showToast('الرقم القومي غير مسجل بالنظام.', "error");
       else if(res.status === "new_user") {
         authMode = 'register'; document.getElementById('authTitle').innerText = "إعداد كلمة المرور";
-        document.getElementById('authInfo').innerHTML = `أهلاً <b>${res.name}</b><br>يرجى إعداد كلمة مرور خاصة بك.`;
+        document.getElementById('authInfo').innerHTML = `أهلاً <b class="sensitive-data">${res.name}</b><br>يرجى إعداد كلمة مرور خاصة بك (لا تقل عن 4 أرقام/أحرف).`;
         document.getElementById('confirmPassGroup').style.display = 'block'; switchScreen('screen-auth'); 
       } else {
         authMode = 'login'; document.getElementById('authTitle').innerText = "تسجيل الدخول";
-        document.getElementById('authInfo').innerHTML = `مرحباً <b>${res.name}</b>`;
+        document.getElementById('authInfo').innerHTML = `مرحباً <b class="sensitive-data">${res.name}</b>`;
         document.getElementById('confirmPassGroup').style.display = 'none'; switchScreen('screen-auth'); 
       }
-    } catch(err) { showErr("id", 'خطأ اتصال بالسيرفر.'); }
+    } catch(err) { hideSkeleton(); showToast('خطأ اتصال بالسيرفر.', "error"); switchScreen('screen-id');}
   }
 
   async function step2Auth() {
     let pass = document.getElementById('password').value.trim();
-    if(!pass) { showErr("auth", 'برجاء إدخال كلمة المرور'); return; }
-    if(authMode === 'register' && pass !== document.getElementById('confirmPassword').value.trim()) { showErr("auth", 'كلمتا المرور غير متطابقتين.'); return; }
+    if(!pass) { showToast('برجاء إدخال كلمة المرور', "error"); return; }
+    if(authMode === 'register' && pass.length < 4) { showToast('كلمة المرور يجب أن تكون 4 أحرف/أرقام على الأقل.', "error"); return; }
+    if(authMode === 'register' && pass !== document.getElementById('confirmPassword').value.trim()) { showToast('كلمتا المرور غير متطابقتين.', "error"); return; }
     
     showSkeleton();
     try {
       const action = authMode === 'register' ? "register" : "login";
       const res = await apiCall(action, { nationalId: studentID, password: pass });
+      hideSkeleton();
       
-      if(res.status === "locked") { showErr("auth", `حساب محظور. جرب بعد ${res.remaining} دقيقة.`); }
-      else if(res.status === "wrong_password") { showErr("auth", `كلمة مرور خاطئة (المحاولات المتبقية: ${res.attemptsLeft})`); }
-      else if(res.status === "error") { showErr("auth", res.message || 'حدث خطأ غير متوقع.'); }
+      if(res.status === "locked") { showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error"); switchScreen('screen-id');}
+      else if(res.status === "wrong_password") { showToast(`كلمة مرور خاطئة (المحاولات المتبقية: ${res.attemptsLeft})`, "error"); }
+      else if(res.status === "withheld") {
+         document.getElementById('withheldName').innerText = res.name;
+         document.getElementById('mainHeader').style.display = 'none'; 
+         document.getElementById('mainTopBar').style.display = 'flex'; 
+         switchScreen('screen-withheld');
+      }
+      else if(res.status === "error") { showToast(res.message || 'حدث خطأ غير متوقع.', "error"); }
       else handleResult(res);
-    } catch(err) { showErr("auth", 'خطأ اتصال بالسيرفر.'); }
+    } catch(err) { hideSkeleton(); showToast('خطأ اتصال بالسيرفر.', "error"); }
   }
 
   // ==========================================
   // دوال الإدارة والشكاوى
   // ==========================================
   async function adminLogin() {
+    let code = document.getElementById('adminCodeInput').value.trim();
     let pass = document.getElementById('adminPassword').value.trim();
-    if(!pass) { showErr("admin-login", "برجاء إدخال كلمة المرور"); return; }
-    
+    if(!code || !pass) { showToast("برجاء إدخال الكود وكلمة المرور", "error"); return; }
+
     showSkeleton();
     try {
-      let res = await apiCall("admin_login", { password: pass });
+      let res = await apiCall("admin_login", { adminCode: code, adminPass: pass });
       hideSkeleton();
       if(res.status === "success") {
+        activeAdminCode = code; activeAdminPass = pass;
+        document.getElementById('adminBadgeName').innerText = "بصمة المشرف: " + res.adminName;
         document.getElementById('adminStatTotal').innerText = res.stats.total;
         document.getElementById('adminStatReg').innerText = res.stats.registered;
         document.getElementById('adminStatRep').innerText = res.stats.reports;
         
-        // عرض الشكاوى
         let reportsHtml = "";
         if(res.issues && res.issues.length > 0) {
           res.issues.forEach(issue => {
+            let isAutoBan = issue.issue.includes("محظور أمنياً");
+            let btnAction = isAutoBan 
+              ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>`
+              : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`;
+
             reportsHtml += `
               <div class="issue-card" id="issue-card-${issue.rowIdx}">
                 <p><b>👤 ${issue.name}</b> (${issue.nid})</p>
-                <p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>
-                <div class="issue-text">${issue.issue}</div>
+                ${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}
+                <div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
                   <span style="font-size:11px; color:var(--text-muted);">${issue.date.substring(0, 10)}</span>
-                  <button class="resolve-btn" onclick="markIssueResolved(${issue.rowIdx}, this)"><i class="fa-solid fa-check"></i> تم الحل</button>
+                  ${btnAction}
                 </div>
               </div>`;
           });
-        } else {
-          reportsHtml = `<div style="text-align:center; padding:20px; color:var(--success); font-weight:bold;"><i class="fa-solid fa-face-smile"></i> لا توجد شكاوى معلقة!</div>`;
-        }
+        } else { reportsHtml = `<div style="text-align:center; padding:20px; color:var(--success); font-weight:bold;"><i class="fa-solid fa-face-smile"></i> لا توجد شكاوى معلقة!</div>`; }
         document.getElementById('adminReportsContainer').innerHTML = reportsHtml;
 
         document.getElementById('mainHeader').style.display = 'none';
         document.getElementById('mainTopBar').style.display = 'none';
         document.getElementById('fabContainer').style.display = 'flex';
         switchScreen('screen-admin-dashboard');
-      } else { showErr("admin-login", res.message); }
-    } catch(err) { showErr("admin-login", 'خطأ في الاتصال بالخادم'); }
+      } else { showToast(res.message, "error"); activeAdminCode = ""; activeAdminPass = ""; }
+    } catch(err) { hideSkeleton(); showToast('خطأ في الاتصال بالخادم', "error"); }
   }
 
-  async function markIssueResolved(rowIdx, btnElement) {
-    let originalText = btnElement.innerHTML;
-    btnElement.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-    btnElement.disabled = true;
-    
+  async function adminQuickSearch() {
+    let sNid = document.getElementById('adminSearchNid').value.trim();
+    if(!sNid) return;
+    let resBox = document.getElementById('adminSearchResult');
+    resBox.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري البحث...';
+    resBox.style.display = 'block';
+
     try {
-      let res = await apiCall("resolve_issue", { rowIdx: rowIdx });
+      let res = await apiCall("admin_search", { searchNid: sNid, adminCode: activeAdminCode, adminPass: activeAdminPass });
+      if(res.status === "success") {
+        resBox.innerHTML = `<b>👤 الاسم:</b> ${res.studentData.name}<br><b>📚 الدفعة:</b> ${res.studentData.batch}<br><b>🔑 الباسورد:</b> ${res.studentData.password}<br><b>🚫 الحظر:</b> ${res.studentData.locked}`;
+      } else { resBox.innerHTML = `<span style="color:var(--danger)">${res.message}</span>`; }
+    } catch(e) { resBox.innerHTML = `<span style="color:var(--danger)">خطأ اتصال</span>`; }
+  }
+
+  function openResolveModal(rowIdx) {
+    document.getElementById('resolveTargetRow').value = rowIdx;
+    document.getElementById('resolvePreset').value = "";
+    document.getElementById('resolveCustomText').value = "";
+    document.getElementById('resolveModal').style.display = 'flex';
+  }
+  function closeResolveModal() { document.getElementById('resolveModal').style.display = 'none'; }
+
+  async function confirmResolve() {
+    let rowIdx = document.getElementById('resolveTargetRow').value;
+    let replyText = document.getElementById('resolveCustomText').value.trim();
+    if(!replyText) { showToast("يرجى كتابة رد للطالب أو اختيار رد جاهز", "error"); return; }
+    
+    let btn = document.getElementById('btnSubmitResolve');
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري الإرسال'; btn.disabled = true;
+
+    try {
+      let res = await apiCall("resolve_issue", { rowIdx: rowIdx, replyText: replyText, adminCode: activeAdminCode, adminPass: activeAdminPass });
       if(res.status === "success") {
         let card = document.getElementById(`issue-card-${rowIdx}`);
         card.style.opacity = '0.5';
-        btnElement.innerHTML = '✔ مغلقة';
-        setTimeout(() => { card.style.display = 'none'; }, 1000); // إخفائها ببطء
-        
+        setTimeout(() => { card.style.display = 'none'; }, 1000);
         let countEl = document.getElementById('adminStatRep');
         countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
-      } else {
-        btnElement.innerHTML = originalText; btnElement.disabled = false; alert("حدث خطأ.");
-      }
-    } catch(err) { btnElement.innerHTML = originalText; btnElement.disabled = false; alert("خطأ اتصال."); }
+        closeResolveModal(); showToast("تم إرسال الرد للطالب وإغلاق المشكلة", "success");
+      } else { showToast(res.message || "حدث خطأ.", "error"); }
+    } catch(err) { showToast("خطأ اتصال.", "error"); }
+    btn.innerHTML = 'إرسال الرد وإغلاق'; btn.disabled = false;
+  }
+
+  async function adminResetDirect(nid, rowIdx, btnElement) {
+    btnElement.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; btnElement.disabled = true;
+    try {
+      let res = await apiCall("admin_reset", { nationalId: nid, adminCode: activeAdminCode, adminPass: activeAdminPass });
+      if(res.status === "success") {
+         await apiCall("resolve_issue", { rowIdx: rowIdx, replyText: "تم فك الحظر الأمني عن حسابك بناءً على إشعار النظام.", adminCode: activeAdminCode, adminPass: activeAdminPass });
+         let card = document.getElementById(`issue-card-${rowIdx}`);
+         card.style.opacity = '0.5'; setTimeout(() => { card.style.display = 'none'; }, 1000);
+         let countEl = document.getElementById('adminStatRep'); countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
+         showToast("تم فك الحظر بنجاح", "success");
+      } else { showToast(res.message, "error"); btnElement.innerHTML = '<i class="fa-solid fa-unlock"></i> فك الحظر آلياً'; btnElement.disabled = false; }
+    } catch(e) { showToast("خطأ", "error"); btnElement.innerHTML = '<i class="fa-solid fa-unlock"></i> فك الحظر آلياً'; btnElement.disabled = false; }
   }
 
   async function adminReset() {
     let targetNid = document.getElementById('adminResetNid').value.trim();
-    if(!targetNid) { showErr("admin-dashboard", "برجاء إدخال الرقم القومي للطالب"); return; }
+    if(!targetNid) { showToast("برجاء إدخال الرقم القومي للطالب", "error"); return; }
     
-    document.getElementById('error-admin-dashboard').style.display = 'none';
     let btn = document.querySelector('#screen-admin-dashboard .btn-main');
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري التنفيذ...';
-    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري التنفيذ...'; btn.disabled = true;
 
     try {
-      let res = await apiCall("admin_reset", { nationalId: targetNid });
-      btn.innerHTML = 'تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i>';
-      btn.disabled = false;
-      
-      if(res.status === "success") {
-        alert(res.message); document.getElementById('adminResetNid').value = "";
-      } else { showErr("admin-dashboard", res.message); }
-    } catch(err) { 
-      btn.innerHTML = 'تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i>';
-      btn.disabled = false; showErr("admin-dashboard", 'خطأ في الاتصال بالخادم'); 
-    }
+      let res = await apiCall("admin_reset", { nationalId: targetNid, adminCode: activeAdminCode, adminPass: activeAdminPass });
+      btn.innerHTML = 'تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i>'; btn.disabled = false;
+      if(res.status === "success") { showToast(res.message, "success"); document.getElementById('adminResetNid').value = ""; } 
+      else { showToast(res.message, "error"); }
+    } catch(err) { btn.innerHTML = 'تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i>'; btn.disabled = false; showToast('خطأ في الاتصال', "error"); }
   }
 
+  // ==========================================
+  // عرض النتائج والرسوم البيانية
+  // ==========================================
   function drawChart(stats) {
     if (cohortChartInstance) cohortChartInstance.destroy(); 
     const ctx = document.getElementById('cohortChart').getContext('2d');
@@ -569,11 +713,40 @@
     });
   }
 
+  function drawLineChart(semestersData) {
+    if (progressLineChartInstance) progressLineChartInstance.destroy(); 
+    const ctx = document.getElementById('progressLineChart').getContext('2d');
+    
+    let labels = []; let dataPoints = [];
+    semestersData.forEach(sem => {
+      let score = parseFloat(sem.score);
+      if(!isNaN(score)) { labels.push(sem.name.replace('سيمستر','س').trim()); dataPoints.push(score); }
+    });
+
+    if(dataPoints.length === 0) return;
+
+    progressLineChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{ label: 'الدرجة', data: dataPoints, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', borderWidth: 3, pointBackgroundColor: '#f59e0b', pointRadius: 5, fill: true, tension: 0.3 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: false }, x: { grid: { display: false } } } }
+    });
+  }
+
   function handleResult(res) {
     document.getElementById('resName').innerText = res.name || '-';
+    document.getElementById('resNid').innerText = res.nid || studentID;
     document.getElementById('resBatch').innerText = res.batch || '-';
     document.getElementById('resRank').innerText = res.rank || '-';
     
+    let replyBox = document.getElementById('adminReplyBox');
+    if(res.adminReply && res.adminReply !== "") {
+       replyBox.innerHTML = `<div class="admin-reply-banner"><i class="fa-solid fa-bell"></i> <div><b>رد الدعم الفني:</b><br>${res.adminReply}</div></div>`;
+       replyBox.style.display = 'block';
+    } else { replyBox.style.display = 'none'; }
+
     let totalHtml = res.total || '-';
     if (res.totalMax && res.total !== '-') { totalHtml = `${res.total} <span style="font-size:14px; opacity:0.6">/ ${res.totalMax}</span>`; }
     document.getElementById('resTotal').innerHTML = totalHtml;
@@ -590,14 +763,24 @@
         if (sem.maxScore && sem.score !== '-') { scoreHtml = `${sem.score} <span style="font-size:14px; opacity:0.6">/ ${sem.maxScore}</span>`; }
         container.innerHTML += `<div class="sem-item"><div class="sem-header"><div class="sem-info"><div class="sem-icon"><i class="fa-solid fa-book"></i></div><span class="sem-name">${sem.name}</span></div><span class="sem-score" dir="ltr" style="display:inline-block;">${scoreHtml}</span></div></div>`;
       });
+      lineChartDataCache = res.semesters;
     }
 
     if (res.cohortStats) { chartDataCache = res.cohortStats; } 
 
     document.getElementById('mainHeader').style.display = 'none'; 
-    document.getElementById('mainTopBar').style.display = 'none'; 
+    document.getElementById('mainTopBar').style.display = 'flex'; 
+    document.getElementById('privacyBtn').style.display = 'flex';
     document.getElementById('fabContainer').style.display = 'flex'; 
     switchScreen('screen-result'); 
+
+    // الاحتفال بالعشرة الأوائل
+    if(res.rank && parseInt(res.rank) <= 10) {
+        setTimeout(() => {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#2563eb', '#10b981'] });
+            showToast(`ألف مبروك! أنت من أوائل الدفعة (المركز الـ ${res.rank}) 🏆`, "gold", 6000);
+        }, 1000);
+    }
   }
 </script>
 </body>
