@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>بوابة نتائج طب طنطا</title>
   
-  <!-- إعدادات المشاركة -->
   <meta property="og:title" content="بوابة نتائج طب طنطا">
   <meta property="og:description" content="استعلم الآن عن نتيجتك الأكاديمية والترتيب العام على الدفعة بسهولة وأمان.">
   <meta property="og:type" content="website">
@@ -13,12 +12,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- مكتبة الألعاب النارية للأوائل -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    :root { --primary: #2563eb; --bg-body: #f1f5f9; --card-bg: #ffffff; --text-dark: #0f172a; --text-muted: #64748b; --border-light: #e2e8f0; --gold: #f59e0b; --danger: #dc2626; --success: #10b981; --theme-color: #2563eb; }
+    :root { --primary: #2563eb; --bg-body: #f1f5f9; --card-bg: #ffffff; --text-dark: #0f172a; --text-muted: #64748b; --border-light: #e2e8f0; --gold: #f59e0b; --danger: #dc2626; --success: #10b981; --theme-color: #2563eb; --master: #8b5cf6;}
     body.dark-theme { --primary: #3b82f6; --bg-body: #0f172a; --card-bg: #1e293b; --text-dark: #f8fafc; --text-muted: #94a3b8; --border-light: #334155; --theme-color: #3b82f6; }
     
     body { font-family: 'Noto Kufi Arabic', sans-serif; background-color: var(--bg-body); color: var(--text-dark); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 15px 15px 80px 15px; transition: background-color 0.3s, color 0.3s; }
@@ -68,7 +66,6 @@
     .student-profile-card p { font-size: 12px; opacity: 0.8; margin-bottom: 8px; }
     .student-profile-card .badge { background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; border: 1px solid rgba(255,255,255,0.1); display: inline-block; }
 
-    /* تشويش الخصوصية */
     .blur-mode .sensitive-data { filter: blur(6px); user-select: none; transition: filter 0.3s; }
 
     .progress-section { padding: 30px 20px; display: flex; flex-direction: column; align-items: center; background: linear-gradient(to bottom, var(--card-bg), var(--bg-body)); }
@@ -97,8 +94,6 @@
     .chart-wrapper { padding: 15px 20px 25px 20px; border-top: 1px dashed var(--border-light); }
     .chart-container-box { width: 100%; height: 250px; position: relative; background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 16px; padding: 10px; margin-bottom: 15px;}
 
-    .disclaimer { margin: 0 20px 20px 20px; padding: 15px; background: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 14px; text-align: center; font-size: 12px; font-weight: 700; color: var(--danger); line-height: 1.6; }
-
     .fab-container { position: fixed; bottom: 20px; right: 20px; z-index: 99; display: flex; flex-direction: column; align-items: center; gap: 10px; }
     .fab-menu { display: flex; flex-direction: column; gap: 10px; opacity: 0; transform: translateY(20px); pointer-events: none; transition: all 0.3s ease; }
     .fab-menu.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
@@ -113,13 +108,11 @@
     .modal-card textarea { width: 100%; height: 90px; padding: 15px; border-radius: 12px; border: 1px solid var(--border-light); background: var(--bg-body); font-family: inherit; font-size: 14px; margin-bottom: 15px; resize: none; color: var(--text-dark);}
     .modal-card textarea:focus { outline: none; border-color: var(--primary); }
 
-    /* تصميم تذاكر الدعم الفني في الداشبورد */
     .issue-card { background: var(--bg-body); border: 1px solid var(--danger); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: right; }
     .issue-card p { margin-bottom: 5px; font-size: 13px; color: var(--text-dark); }
     .issue-card .issue-text { background: var(--card-bg); padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600; border: 1px solid var(--border-light); margin: 10px 0; }
     .resolve-btn { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
 
-    /* ستايلات الـ Toast Notification الفخمة */
     #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none;}
     .toast-msg { background: var(--card-bg); color: var(--text-dark); padding: 15px 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-right: 5px solid var(--theme-color); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; animation: slideDown 0.4s ease forwards; pointer-events: auto;}
     .toast-msg.error { border-color: var(--danger); }
@@ -128,15 +121,24 @@
     @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
 
-    /* إشعار رد الدعم الفني */
-    .admin-reply-banner { margin: 20px; padding: 15px; background: linear-gradient(135deg, var(--success), #047857); color: #fff; border-radius: 16px; font-size: 13px; font-weight: 700; line-height: 1.6; display: flex; gap: 12px; align-items: flex-start; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.2); }
-    .admin-reply-banner i { font-size: 20px; margin-top: 2px; }
+    .admin-reply-banner { margin-top: 10px; padding: 12px; background: linear-gradient(135deg, var(--success), #047857); color: #fff; border-radius: 12px; font-size: 13px; font-weight: 700; line-height: 1.6; display: flex; gap: 10px; align-items: flex-start; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); }
+    .admin-reply-banner i { font-size: 18px; margin-top: 2px; }
 
-    /* شاشة النتيجة المحجوبة */
     .withheld-card { text-align: center; padding: 40px 20px; }
     .withheld-card i { font-size: 60px; color: var(--danger); margin-bottom: 20px; }
     .withheld-card h2 { font-size: 22px; color: var(--text-dark); margin-bottom: 10px; font-weight: 900;}
     .withheld-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+    /* ستايلات قسم المدير العام (الماستر) */
+    .master-panel { background: rgba(139, 92, 246, 0.05); border: 1px solid var(--master); border-radius: 16px; padding: 20px; margin-top: 25px; }
+    .log-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border-light); font-size: 12px; }
+    .log-item:last-child { border-bottom: none; }
+    .toggle-switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--danger); }
+    input:checked + .slider:before { transform: translateX(24px); }
 
     @media print {
       body, .result-container { background: #fff !important; color: #000 !important; border: none !important; box-shadow: none !important; }
@@ -154,7 +156,6 @@
   <div class="top-bar" id="mainTopBar">
     <div class="action-btn" onclick="openSupport()" title="الدعم الفني / تواصل معنا"><i class="fa-solid fa-headset"></i></div>
     <div class="action-btn" onclick="toggleTheme()" title="الوضع الليلي"><i class="fa-solid fa-moon" id="themeIcon"></i></div>
-    <!-- زر الخصوصية -->
     <div class="action-btn" onclick="togglePrivacy()" title="إخفاء البيانات للسكرين شوت" id="privacyBtn" style="display:none;"><i class="fa-solid fa-eye-slash"></i></div>
   </div>
 
@@ -177,7 +178,7 @@
   <div id="screen-id" class="screen active auth-card">
     <div class="input-group">
       <i class="fa-regular fa-id-card input-icon"></i>
-      <input type="text" id="nationalId" placeholder="الرقم القومي (أو اكتب admin للدخول)" oninput="validateNID()">
+      <input type="text" id="nationalId" placeholder="الرقم القومي او رقم الجواز" oninput="validateNID()">
     </div>
     <label class="remember-me"><input type="checkbox" id="rememberMe"> تذكر بياناتي</label>
     <button class="btn-main" id="btnStep1" onclick="step1CheckID()" disabled>استمرار</button>
@@ -208,12 +209,11 @@
     <button class="btn-main" onclick="step2Auth()">عرض النتائج</button>
   </div>
 
-  <!-- تم تعديل شاشة المشرف لطلب الكود وكلمة المرور -->
   <div id="screen-admin-login" class="screen auth-card">
     <h3 style="text-align:center; color:var(--danger); font-weight:900; margin-bottom:15px;">تسجيل دخول المشرف</h3>
     <div class="input-group">
       <i class="fa-solid fa-hashtag input-icon"></i>
-      <input type="text" id="adminCodeInput" placeholder="كود المشرف (مثال: admin)">
+      <input type="text" id="adminCodeInput" placeholder="كود المشرف">
     </div>
     <div class="input-group">
       <i class="fa-solid fa-user-shield input-icon"></i>
@@ -230,7 +230,6 @@
       <p id="adminBadgeName">مرحباً، المشرف</p>
     </div>
 
-    <!-- كشاف الطلبة -->
     <div class="sems-wrapper" style="padding-top:20px;">
       <h3 class="section-head" style="color:var(--primary);"><i class="fa-solid fa-magnifying-glass"></i> كشاف الطلبة</h3>
       <div class="input-group" style="margin-bottom:10px;">
@@ -244,6 +243,28 @@
       <div class="m-stat"><span class="title">إجمالي الطلبة</span><div class="val" id="adminStatTotal">-</div></div>
       <div class="m-stat"><span class="title">مسجلين حسابات</span><div class="val" id="adminStatReg">-</div></div>
       <div class="m-stat" style="grid-column: span 2;"><span class="title">تذاكر الدعم الفني</span><div class="val" id="adminStatRep" style="color:var(--danger);">-</div></div>
+    </div>
+
+    <!-- 👑 قسم المدير العام (يظهر للماستر فقط) -->
+    <div id="masterAdminSection" class="master-panel" style="display:none; margin: 0 20px;">
+      <h3 class="section-head" style="color:var(--master);"><i class="fa-solid fa-crown"></i> صلاحيات المدير العام</h3>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:var(--card-bg); padding:10px 15px; border-radius:12px; border:1px solid var(--border-light);">
+        <span style="font-size:13px; font-weight:bold; color:var(--text-dark)">إغلاق الموقع للصيانة</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenance()">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <button class="btn-main" style="background:var(--bg-body); color:var(--text-dark); border:1px solid var(--border-light); padding:10px; font-size:13px; margin-bottom:15px;" onclick="cleanReports()">
+        <i class="fa-solid fa-broom" style="color:var(--master)"></i> أرشفة الشكاوى المحلولة
+      </button>
+
+      <div style="background:var(--card-bg); padding:15px; border-radius:12px; border:1px solid var(--border-light);">
+        <h4 style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">رادار المشرفين (آخر الإجراءات)</h4>
+        <div id="adminLogsContainer" style="max-height:150px; overflow-y:auto;"></div>
+      </div>
     </div>
 
     <div class="sems-wrapper" style="border-top: 1px dashed var(--border-light); margin-top:20px;">
@@ -261,13 +282,20 @@
     </div>
   </div>
 
-  <!-- شاشة الحجب -->
   <div id="screen-withheld" class="screen result-container">
     <div class="withheld-card">
       <i class="fa-solid fa-lock"></i>
       <h2>النتيجة محجوبة</h2>
       <p>عفواً <b id="withheldName" class="sensitive-data"></b>، نتيجتك قيد المراجعة حالياً. يرجى التوجه لشئون الطلبة أو مراسلة الدعم الفني لمزيد من التفاصيل.</p>
       <button class="btn-main" style="margin-top:25px;" onclick="openSupport()">مراسلة الدعم الفني</button>
+    </div>
+  </div>
+  
+  <div id="screen-maintenance" class="screen result-container">
+    <div class="withheld-card">
+      <i class="fa-solid fa-person-digging" style="color:var(--gold)"></i>
+      <h2 style="color:var(--gold)">النظام قيد التحديث</h2>
+      <p>بوابة النتائج مغلقة حالياً لرفع درجات جديدة وأعمال الصيانة. يرجى العودة لاحقاً.</p>
     </div>
   </div>
 
@@ -278,9 +306,6 @@
       <p id="resNid" class="sensitive-data" style="font-family: monospace; font-size: 14px; opacity:0.9">-</p>
       <div class="badge" id="resBatch">-</div>
     </div>
-
-    <!-- إشعار الدعم الفني للطالب -->
-    <div id="adminReplyBox" style="display:none;"></div>
 
     <div class="progress-section">
       <div class="circular-progress" id="circularProgress"><div class="progress-value"><div id="resPctText">0%</div><span>النسبة المئوية</span></div></div>
@@ -295,7 +320,6 @@
       <div id="semestersContainer"></div>
     </div>
 
-    <!-- التشارت الخطي للتطور -->
     <div class="chart-wrapper">
       <h3 class="section-head"><i class="fa-solid fa-chart-line"></i> تطور المستوى</h3>
       <div class="chart-container-box">
@@ -328,7 +352,6 @@
   </div>
 </div>
 
-<!-- نافذة حل المشكلة للمشرف -->
 <div class="modal-overlay" id="resolveModal">
   <div class="modal-card">
     <h3 style="margin-bottom: 15px; color:var(--success)"><i class="fa-solid fa-check-circle"></i> حل المشكلة</h3>
@@ -337,6 +360,7 @@
         <option value="">اختر رد جاهز...</option>
         <option value="تم مراجعة الشيت وتعديل النتيجة بناءً على طلبك.">تم مراجعة الشيت وتعديل النتيجة.</option>
         <option value="تم فك الحظر عن حسابك، يمكنك تسجيل الدخول الآن.">تم فك الحظر عن حسابك.</option>
+        <option value="تم إعادة ضبط حسابك، برجاء الدخول وإنشاء كلمة مرور جديدة.">تم إعادة ضبط الحساب (إنشاء باسورد جديد).</option>
       </select>
     </div>
     <textarea id="resolveCustomText" placeholder="أو اكتب رداً مخصصاً للطالب..." style="margin-bottom: 15px; height: 80px;"></textarea>
@@ -350,17 +374,14 @@
 
 <script>
   // ==========================================
-  // رابط الـ Web App الخاص بك
-  // ==========================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5tilFd3TlQnqqCjMqdCvZOpPAm9E7uy_NueSOgjq3rzYtgrwps78YZTuBUKwCh_1o/exec"; 
-  const API_KEY = "TANTA_MED_2026_SECURE41";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTmzGU6Sr4okxx_gT13YjhyKXZ_gfj4io09wFJE28324ODHWBSS_e9gN9G6tRen2R-/exec"; 
+  const API_KEY = "TANTA_MED_2026_SECURE41TMSU";
 
   let studentID = ""; let authMode = ""; 
   let activeAdminCode = ""; let activeAdminPass = ""; 
   let cohortChartInstance = null; let progressLineChartInstance = null; 
   let finalPctValue = 0; let chartDataCache = null; let lineChartDataCache = null;
 
-  // نظام التنبيهات (Toast) بديل الـ alert
   function showToast(msg, type="primary", duration=4000) {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -425,7 +446,6 @@
     validateNID();
   }
 
-  // نظام حماية لتسجيل الخروج التلقائي
   let timeout;
   function resetTimer() { clearTimeout(timeout); timeout = setTimeout(() => { if(window.location.hash === '#screen-result' || window.location.hash === '#screen-admin-dashboard') { logout(); showToast("تم تسجيل الخروج أوتوماتيكياً للحماية", "error"); } }, 180000); }
   document.onmousemove = resetTimer; document.onkeypress = resetTimer; document.ontouchstart = resetTimer;
@@ -523,9 +543,7 @@
     let inputVal = document.getElementById('nationalId').value.trim();
     if(inputVal.length < 3) return;
     
-    if(inputVal.toLowerCase() === "admin") { 
-        switchScreen('screen-admin-login'); return; 
-    }
+    if(inputVal.toLowerCase() === "admin") { switchScreen('screen-admin-login'); return; }
 
     studentID = inputVal;
     if(document.getElementById('rememberMe').checked) { localStorage.setItem('savedNID', studentID); } 
@@ -535,16 +553,28 @@
     try {
       const res = await apiCall("check_status", { nationalId: studentID });
       hideSkeleton();
-      if(res.status === "locked") showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error");
+      
+      if(res.status === "maintenance") {
+         document.getElementById('mainHeader').style.display = 'none'; 
+         switchScreen('screen-maintenance'); return;
+      }
+      else if(res.status === "locked") showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error");
       else if(res.status === "not_found") showToast('الرقم القومي غير مسجل بالنظام.', "error");
-      else if(res.status === "new_user") {
-        authMode = 'register'; document.getElementById('authTitle').innerText = "إعداد كلمة المرور";
-        document.getElementById('authInfo').innerHTML = `أهلاً <b class="sensitive-data">${res.name}</b><br>يرجى إعداد كلمة مرور خاصة بك (لا تقل عن 4 أرقام/أحرف).`;
-        document.getElementById('confirmPassGroup').style.display = 'block'; switchScreen('screen-auth'); 
-      } else {
-        authMode = 'login'; document.getElementById('authTitle').innerText = "تسجيل الدخول";
-        document.getElementById('authInfo').innerHTML = `مرحباً <b class="sensitive-data">${res.name}</b>`;
-        document.getElementById('confirmPassGroup').style.display = 'none'; switchScreen('screen-auth'); 
+      else {
+        let replyHtml = "";
+        if(res.adminReply && res.adminReply !== "") {
+            replyHtml = `<div class="admin-reply-banner" style="margin: 10px 0; font-size:12px;"><i class="fa-solid fa-bell"></i> <div><b>رد الدعم الفني:</b><br>${res.adminReply}</div></div>`;
+        }
+
+        if(res.status === "new_user") {
+          authMode = 'register'; document.getElementById('authTitle').innerText = "إعداد كلمة المرور";
+          document.getElementById('authInfo').innerHTML = `أهلاً <b class="sensitive-data">${res.name}</b>${replyHtml}<br>يرجى إعداد كلمة مرور خاصة بك (لا تقل عن 4 أرقام/أحرف).`;
+          document.getElementById('confirmPassGroup').style.display = 'block'; switchScreen('screen-auth'); 
+        } else {
+          authMode = 'login'; document.getElementById('authTitle').innerText = "تسجيل الدخول";
+          document.getElementById('authInfo').innerHTML = `مرحباً <b class="sensitive-data">${res.name}</b>${replyHtml}`;
+          document.getElementById('confirmPassGroup').style.display = 'none'; switchScreen('screen-auth'); 
+        }
       }
     } catch(err) { hideSkeleton(); showToast('خطأ اتصال بالسيرفر.', "error"); switchScreen('screen-id');}
   }
@@ -561,7 +591,8 @@
       const res = await apiCall(action, { nationalId: studentID, password: pass });
       hideSkeleton();
       
-      if(res.status === "locked") { showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error"); switchScreen('screen-id');}
+      if(res.status === "maintenance") { document.getElementById('mainHeader').style.display = 'none'; switchScreen('screen-maintenance');}
+      else if(res.status === "locked") { showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error"); switchScreen('screen-id');}
       else if(res.status === "wrong_password") { showToast(`كلمة مرور خاطئة (المحاولات المتبقية: ${res.attemptsLeft})`, "error"); }
       else if(res.status === "withheld") {
          document.getElementById('withheldName').innerText = res.name;
@@ -575,7 +606,7 @@
   }
 
   // ==========================================
-  // دوال الإدارة والشكاوى
+  // دوال الإدارة والماستر
   // ==========================================
   async function adminLogin() {
     let code = document.getElementById('adminCodeInput').value.trim();
@@ -588,7 +619,19 @@
       hideSkeleton();
       if(res.status === "success") {
         activeAdminCode = code; activeAdminPass = pass;
-        document.getElementById('adminBadgeName').innerText = "بصمة المشرف: " + res.adminName;
+        
+        // تفعيل وضع المدير العام
+        if(res.role === "master") {
+            document.getElementById('masterAdminSection').style.display = 'block';
+            document.getElementById('maintenanceToggle').checked = res.isMaintenance;
+            let logsHtml = "";
+            if(res.adminLogs) {
+                res.adminLogs.forEach(l => { logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted)">${l.date.substring(5,16)}</span></div>`; });
+            }
+            document.getElementById('adminLogsContainer').innerHTML = logsHtml;
+        } else { document.getElementById('masterAdminSection').style.display = 'none'; }
+
+        document.getElementById('adminBadgeName').innerHTML = res.role === "master" ? `<i class="fa-solid fa-crown" style="color:var(--gold)"></i> المدير العام` : "المشرف: " + res.adminName;
         document.getElementById('adminStatTotal').innerText = res.stats.total;
         document.getElementById('adminStatReg').innerText = res.stats.registered;
         document.getElementById('adminStatRep').innerText = res.stats.reports;
@@ -623,6 +666,24 @@
     } catch(err) { hideSkeleton(); showToast('خطأ في الاتصال بالخادم', "error"); }
   }
 
+  // دوال המנהل العام
+  async function toggleMaintenance() {
+    try {
+      let res = await apiCall("toggle_maintenance", { adminCode: activeAdminCode, adminPass: activeAdminPass });
+      if(res.status === "success") { showToast(res.isMaintenance ? "تم إغلاق الموقع للصيانة" : "تم فتح الموقع للطلبة", "success"); } 
+      else { showToast("خطأ في الصلاحيات", "error"); }
+    } catch(e) { showToast("خطأ اتصال", "error"); }
+  }
+
+  async function cleanReports() {
+    if(!confirm("هل أنت متأكد من مسح جميع الشكاوى التي تم حلها نهائياً لتخفيف النظام؟")) return;
+    try {
+      let res = await apiCall("clean_reports", { adminCode: activeAdminCode, adminPass: activeAdminPass });
+      if(res.status === "success") { showToast(`تم مسح ${res.deleted} شكوى محلولة بنجاح.`, "success"); }
+      else { showToast("خطأ في العملية", "error"); }
+    } catch(e) { showToast("خطأ اتصال", "error"); }
+  }
+
   async function adminQuickSearch() {
     let sNid = document.getElementById('adminSearchNid').value.trim();
     if(!sNid) return;
@@ -633,7 +694,7 @@
     try {
       let res = await apiCall("admin_search", { searchNid: sNid, adminCode: activeAdminCode, adminPass: activeAdminPass });
       if(res.status === "success") {
-        resBox.innerHTML = `<b>👤 الاسم:</b> ${res.studentData.name}<br><b>📚 الدفعة:</b> ${res.studentData.batch}<br><b>🔑 الباسورد:</b> ${res.studentData.password}<br><b>🚫 الحظر:</b> ${res.studentData.locked}`;
+        resBox.innerHTML = `<b>👤 الاسم:</b> ${res.studentData.name}<br><b>📚 الدفعة:</b> ${res.studentData.batch}<br><b>🔑 حالة الحساب:</b> ${res.studentData.hasPassword}<br><b>🚫 الحظر:</b> ${res.studentData.locked}`;
       } else { resBox.innerHTML = `<span style="color:var(--danger)">${res.message}</span>`; }
     } catch(e) { resBox.innerHTML = `<span style="color:var(--danger)">خطأ اتصال</span>`; }
   }
@@ -662,7 +723,7 @@
         setTimeout(() => { card.style.display = 'none'; }, 1000);
         let countEl = document.getElementById('adminStatRep');
         countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
-        closeResolveModal(); showToast("تم إرسال الرد للطالب وإغلاق المشكلة", "success");
+        closeResolveModal(); showToast("تم إرسال الرد وإغلاق المشكلة", "success");
       } else { showToast(res.message || "حدث خطأ.", "error"); }
     } catch(err) { showToast("خطأ اتصال.", "error"); }
     btn.innerHTML = 'إرسال الرد وإغلاق'; btn.disabled = false;
@@ -741,12 +802,6 @@
     document.getElementById('resBatch').innerText = res.batch || '-';
     document.getElementById('resRank').innerText = res.rank || '-';
     
-    let replyBox = document.getElementById('adminReplyBox');
-    if(res.adminReply && res.adminReply !== "") {
-       replyBox.innerHTML = `<div class="admin-reply-banner"><i class="fa-solid fa-bell"></i> <div><b>رد الدعم الفني:</b><br>${res.adminReply}</div></div>`;
-       replyBox.style.display = 'block';
-    } else { replyBox.style.display = 'none'; }
-
     let totalHtml = res.total || '-';
     if (res.totalMax && res.total !== '-') { totalHtml = `${res.total} <span style="font-size:14px; opacity:0.6">/ ${res.totalMax}</span>`; }
     document.getElementById('resTotal').innerHTML = totalHtml;
@@ -774,7 +829,6 @@
     document.getElementById('fabContainer').style.display = 'flex'; 
     switchScreen('screen-result'); 
 
-    // الاحتفال بالعشرة الأوائل
     if(res.rank && parseInt(res.rank) <= 10) {
         setTimeout(() => {
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#2563eb', '#10b981'] });
