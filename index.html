@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>بوابة نتائج طب طنطا</title>
   
-  <!-- 🔥 خدعة تسريع الاتصال (Preconnect) بتفتح السكة مع جوجل قبل ما الطالب يدوس استمرار -->
+  <!-- 🔥 خدعة تسريع الاتصال (Preconnect) -->
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://script.googleusercontent.com">
   
@@ -124,7 +124,10 @@
     .toast-msg { background: var(--card-bg); color: var(--text-dark); padding: 15px 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-right: 5px solid var(--theme-color); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; animation: slideDown 0.4s ease forwards; pointer-events: auto;}
     .toast-msg.error { border-color: var(--danger); }
     .toast-msg.success { border-color: var(--success); }
+    
+    /* 🔥 تعديل لون رسالة الأوائل عشان تبان كحلي غامق في الوضع الليلي */
     .toast-msg.gold { border-color: var(--gold); background: linear-gradient(135deg, #fff, #fffbeb); color: #0f172a !important; }
+    
     @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
 
@@ -184,22 +187,23 @@
   </header>
 
   <div id="screen-id" class="screen active auth-card">
+    <!-- 🔥 تم تعديل المسميات هنا بناءً على طلبك -->
     <div class="input-group">
       <i class="fa-solid fa-layer-group input-icon"></i>
       <select id="batchSelect" onchange="validateNID()">
-        <option value="" disabled selected>اختر الفرقة...</option>
-        <option value="الفرقة الأولى">(70) الفرقة الأولى</option>
-        <option value="الفرقة الثانية">(69) الفرقة الثانية</option>
-        <option value="الفرقة الثالثة">(68) الفرقة الثالثة</option>
-        <option value="الفرقة الرابعة">(67) الفرقة الرابعة</option>
-        <option value="الفرقة الخامسة">(66) الفرقة الخامسة</option>
+        <option value="" disabled selected>اختر الفرقة (الدفعة)...</option>
+        <option value="الفرقة الأولى">الفرقة الأولى 70</option>
+        <option value="الفرقة الثانية">الفرقة الثانية 69</option>
+        <option value="الفرقة الثالثة">الفرقة الثالثة 68</option>
+        <option value="الفرقة الرابعة">الفرقة الرابعة 67</option>
+        <option value="الفرقة الخامسة">الفرقة الخامسة 66</option>
       </select>
       <i class="fa-solid fa-chevron-down select-arrow"></i>
     </div>
 
     <div class="input-group">
       <i class="fa-regular fa-id-card input-icon"></i>
-      <input type="text" id="nationalId" placeholder="الرقم القومي او رقم الجواز" oninput="validateNID()">
+      <input type="text" id="nationalId" placeholder="الرقم القومي" oninput="validateNID()">
     </div>
     <label class="remember-me"><input type="checkbox" id="rememberMe"> تذكر بياناتي</label>
     <button class="btn-main" id="btnStep1" onclick="step1CheckID()" disabled>استمرار</button>
@@ -394,7 +398,7 @@
 
 <script>
   // ==========================================
-  // 👇 انسخ من أول هنا وشفّره (متنساش تحط الروابط بتاعتك)
+  // 👇 انسخ من أول هنا وشفّره (الأكواد جاهزة)
   // ==========================================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw9ZrgQEk4TYOJxURnWlMXFVFCQaJQleAQi2isvnu_a00aZxu0HziAg9yDx9oMGDOEj/exec"; 
   const API_KEY = "TANTA_MED_2026_SECURE41TMSU";
@@ -489,7 +493,7 @@
 
   function toggleFab() { document.getElementById('fabMenu').classList.toggle('open'); document.getElementById('fabMain').classList.toggle('open'); }
 
-  // 🔥 هنا حلينا مشكلة مسح خانة تأكيد الباسورد
+  // 🔥 هنا مسحنا كل الخانات في صفحة الباسورد
   function logout() {
     document.getElementById('fabMenu').classList.remove('open');
     document.getElementById('fabMain').classList.remove('open');
@@ -501,7 +505,7 @@
     document.getElementById('privacyBtn').innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
     window.location.hash = 'screen-id';
     document.getElementById('password').value = '';
-    document.getElementById('confirmPassword').value = ''; // <--- تم إضافة هذا السطر
+    document.getElementById('confirmPassword').value = ''; 
     document.getElementById('adminPassword').value = '';
     document.getElementById('adminCodeInput').value = '';
     activeAdminCode = ""; activeAdminPass = "";
