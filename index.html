@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>بوابة نتائج طب طنطا</title>
   
-  <meta property="og:title" content="بوابة نتائج طب طنطا">
+  <!-- 🔥 خدعة تسريع الاتصال (Preconnect) بتفتح السكة مع جوجل قبل ما الطالب يدوس استمرار -->
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com">
+  
+  <meta property="og:title" content="بوابة نتائج طب طنطا | النظام المركزي">
   <meta property="og:description" content="استعلم الآن عن نتيجتك الأكاديمية والترتيب العام على الدفعة بسهولة وأمان.">
   <meta property="og:type" content="website">
 
@@ -41,7 +45,6 @@
     .input-group input, .input-group select { width: 100%; padding: 18px 45px; background: var(--bg-body); border: 1.5px solid var(--border-light); border-radius: 16px; font-size: 16px; font-family: inherit; font-weight: 700; color: var(--text-dark); transition: border-color 0.2s; -webkit-appearance: none; appearance: none;}
     .input-group input:focus, .input-group select:focus { border-color: var(--primary); outline: none; background: var(--card-bg); }
     
-    /* سهم مخصص للقائمة المنسدلة */
     .input-group select { cursor: pointer; }
     .select-arrow { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
 
@@ -181,23 +184,22 @@
   </header>
 
   <div id="screen-id" class="screen active auth-card">
-    <!-- 🔥 القائمة المنسدلة لاختيار الفرقة -->
     <div class="input-group">
       <i class="fa-solid fa-layer-group input-icon"></i>
       <select id="batchSelect" onchange="validateNID()">
-        <option value="" disabled selected>اختر الفرقة (الدفعة)...</option>
-        <option value="الفرقة الأولى">الفرقة الأولى</option>
-        <option value="الفرقة الثانية">الفرقة الثانية</option>
-        <option value="الفرقة الثالثة">الفرقة الثالثة</option>
-        <option value="الفرقة الرابعة">الفرقة الرابعة</option>
-        <option value="الفرقة الخامسة">الفرقة الخامسة</option>
+        <option value="" disabled selected>اختر الفرقة...</option>
+        <option value="(70) الفرقة الأولى">الفرقة الأولى</option>
+        <option value="(69) الفرقة الثانية">الفرقة الثانية</option>
+        <option value="(68) الفرقة الثالثة">الفرقة الثالثة</option>
+        <option value="(67) الفرقة الرابعة">الفرقة الرابعة</option>
+        <option value="(66) الفرقة الخامسة">الفرقة الخامسة</option>
       </select>
       <i class="fa-solid fa-chevron-down select-arrow"></i>
     </div>
 
     <div class="input-group">
       <i class="fa-regular fa-id-card input-icon"></i>
-      <input type="text" id="nationalId" placeholder="الرقم القومي" oninput="validateNID()">
+      <input type="text" id="nationalId" placeholder="الرقم القومي او رقم الجواز" oninput="validateNID()">
     </div>
     <label class="remember-me"><input type="checkbox" id="rememberMe"> تذكر بياناتي</label>
     <button class="btn-main" id="btnStep1" onclick="step1CheckID()" disabled>استمرار</button>
@@ -392,7 +394,7 @@
 
 <script>
   // ==========================================
-  // 👇 انسخ من أول هنا لحد قبل القفلة وشَفَّره
+  // 👇 انسخ من أول هنا وشفّره (متنساش تحط الروابط بتاعتك)
   // ==========================================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw9ZrgQEk4TYOJxURnWlMXFVFCQaJQleAQi2isvnu_a00aZxu0HziAg9yDx9oMGDOEj/exec"; 
   const API_KEY = "TANTA_MED_2026_SECURE41TMSU";
@@ -454,7 +456,6 @@
     } else { renderScreenOnly(initialHash); }
   };
 
-  // 🔥 التأكد من إدخال الرقم القومي واختيار الفرقة (لو مش أدمن)
   function validateNID() {
     const input = document.getElementById('nationalId').value.trim();
     const batch = document.getElementById('batchSelect').value;
@@ -488,6 +489,7 @@
 
   function toggleFab() { document.getElementById('fabMenu').classList.toggle('open'); document.getElementById('fabMain').classList.toggle('open'); }
 
+  // 🔥 هنا حلينا مشكلة مسح خانة تأكيد الباسورد
   function logout() {
     document.getElementById('fabMenu').classList.remove('open');
     document.getElementById('fabMain').classList.remove('open');
@@ -499,6 +501,7 @@
     document.getElementById('privacyBtn').innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
     window.location.hash = 'screen-id';
     document.getElementById('password').value = '';
+    document.getElementById('confirmPassword').value = ''; // <--- تم إضافة هذا السطر
     document.getElementById('adminPassword').value = '';
     document.getElementById('adminCodeInput').value = '';
     activeAdminCode = ""; activeAdminPass = "";
@@ -619,7 +622,7 @@
     if(inputVal.toLowerCase() === "admin") { switchScreen('screen-admin-login'); return; }
 
     studentID = inputVal;
-    studentBatch = document.getElementById('batchSelect').value; // حفظ الفرقة المختارة
+    studentBatch = document.getElementById('batchSelect').value;
     
     if(document.getElementById('rememberMe').checked) { 
         localStorage.setItem('savedNID', studentID); 
@@ -631,7 +634,6 @@
 
     showSkeleton();
     try {
-      // إرسال رقم الطالب والفرقة للسيرفر للبحث السريع
       const res = await apiCall("check_status", { nationalId: studentID, batch: studentBatch });
       hideSkeleton();
       
@@ -686,9 +688,6 @@
     } catch(err) { hideSkeleton(); renderScreenOnly('screen-auth'); showToast('خطأ اتصال بالسيرفر.', "error"); }
   }
 
-  // ==========================================
-  // دوال الإدارة والماستر
-  // ==========================================
   async function adminLogin() {
     let code = document.getElementById('adminCodeInput').value.trim();
     let pass = document.getElementById('adminPassword').value.trim();
@@ -853,9 +852,6 @@
     } catch(err) { btn.innerHTML = 'تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i>'; btn.disabled = false; showToast('خطأ في الاتصال', "error"); }
   }
 
-  // ==========================================
-  // عرض النتائج والرسوم البيانية
-  // ==========================================
   function drawChart(stats) {
     if (cohortChartInstance) cohortChartInstance.destroy(); 
     const ctx = document.getElementById('cohortChart').getContext('2d');
@@ -932,6 +928,5 @@
     }
   }
 </script>
-<!-- --------------------------------------- -->
 </body>
 </html>
