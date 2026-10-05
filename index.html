@@ -38,9 +38,13 @@
     .input-group { margin-bottom: 15px; position: relative; }
     .input-icon { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
     .toggle-pass { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; padding: 10px; }
-    .input-group input, .input-group select { width: 100%; padding: 18px 45px; background: var(--bg-body); border: 1.5px solid var(--border-light); border-radius: 16px; font-size: 16px; font-family: inherit; font-weight: 700; color: var(--text-dark); transition: border-color 0.2s; }
+    .input-group input, .input-group select { width: 100%; padding: 18px 45px; background: var(--bg-body); border: 1.5px solid var(--border-light); border-radius: 16px; font-size: 16px; font-family: inherit; font-weight: 700; color: var(--text-dark); transition: border-color 0.2s; -webkit-appearance: none; appearance: none;}
     .input-group input:focus, .input-group select:focus { border-color: var(--primary); outline: none; background: var(--card-bg); }
     
+    /* سهم مخصص للقائمة المنسدلة */
+    .input-group select { cursor: pointer; }
+    .select-arrow { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+
     .remember-me { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; cursor: pointer; }
     .remember-me input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
 
@@ -117,10 +121,7 @@
     .toast-msg { background: var(--card-bg); color: var(--text-dark); padding: 15px 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-right: 5px solid var(--theme-color); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; animation: slideDown 0.4s ease forwards; pointer-events: auto;}
     .toast-msg.error { border-color: var(--danger); }
     .toast-msg.success { border-color: var(--success); }
-    
-    /* 🔥 هنا تم تعديل لون رسالة الأوائل عشان تبان كحلي غامق في الوضع الليلي */
     .toast-msg.gold { border-color: var(--gold); background: linear-gradient(135deg, #fff, #fffbeb); color: #0f172a !important; }
-    
     @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
 
@@ -180,6 +181,20 @@
   </header>
 
   <div id="screen-id" class="screen active auth-card">
+    <!-- 🔥 القائمة المنسدلة لاختيار الفرقة -->
+    <div class="input-group">
+      <i class="fa-solid fa-layer-group input-icon"></i>
+      <select id="batchSelect" onchange="validateNID()">
+        <option value="" disabled selected>اختر الفرقة (الدفعة)...</option>
+        <option value="الفرقة الأولى">الفرقة الأولى</option>
+        <option value="الفرقة الثانية">الفرقة الثانية</option>
+        <option value="الفرقة الثالثة">الفرقة الثالثة</option>
+        <option value="الفرقة الرابعة">الفرقة الرابعة</option>
+        <option value="الفرقة الخامسة">الفرقة الخامسة</option>
+      </select>
+      <i class="fa-solid fa-chevron-down select-arrow"></i>
+    </div>
+
     <div class="input-group">
       <i class="fa-regular fa-id-card input-icon"></i>
       <input type="text" id="nationalId" placeholder="الرقم القومي" oninput="validateNID()">
@@ -377,10 +392,12 @@
 
 <script>
   // ==========================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx7HOy8QAnN2P8sG0P59RAaGnf33tDTjIUmwV9ozZm3H2JhTSTUgv-XTmpCxGlQWlwR/exec"; 
+  // 👇 انسخ من أول هنا لحد قبل القفلة وشَفَّره
+  // ==========================================
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw9ZrgQEk4TYOJxURnWlMXFVFCQaJQleAQi2isvnu_a00aZxu0HziAg9yDx9oMGDOEj/exec"; 
   const API_KEY = "TANTA_MED_2026_SECURE41TMSU";
 
-  let studentID = ""; let authMode = ""; 
+  let studentID = ""; let studentBatch = ""; let authMode = ""; 
   let activeAdminCode = ""; let activeAdminPass = ""; 
   let cohortChartInstance = null; let progressLineChartInstance = null; 
   let finalPctValue = 0; let chartDataCache = null; let lineChartDataCache = null;
@@ -424,16 +441,31 @@
 
   window.onload = function() {
     let savedNID = localStorage.getItem('savedNID');
-    if(savedNID) { document.getElementById('nationalId').value = savedNID; document.getElementById('rememberMe').checked = true; validateNID(); }
+    let savedBatch = localStorage.getItem('savedBatch');
+    if(savedNID) { 
+        document.getElementById('nationalId').value = savedNID; 
+        if(savedBatch) document.getElementById('batchSelect').value = savedBatch;
+        document.getElementById('rememberMe').checked = true; 
+        validateNID(); 
+    }
     let initialHash = window.location.hash.substring(1);
     if (!initialHash || (initialHash !== 'screen-id' && currentHash !== 'screen-admin-login' && studentID === "")) {
         window.location.hash = 'screen-id'; renderScreenOnly('screen-id');
     } else { renderScreenOnly(initialHash); }
   };
 
+  // 🔥 التأكد من إدخال الرقم القومي واختيار الفرقة (لو مش أدمن)
   function validateNID() {
     const input = document.getElementById('nationalId').value.trim();
-    if (input.length >= 3 || input.toLowerCase() === 'admin') { document.getElementById('btnStep1').disabled = false; } else { document.getElementById('btnStep1').disabled = true; }
+    const batch = document.getElementById('batchSelect').value;
+    
+    if (input.toLowerCase() === 'admin') { 
+        document.getElementById('btnStep1').disabled = false; 
+    } else if (input.length >= 3 && batch !== "") { 
+        document.getElementById('btnStep1').disabled = false; 
+    } else { 
+        document.getElementById('btnStep1').disabled = true; 
+    }
   }
 
   function toggleTheme() { 
@@ -587,12 +619,20 @@
     if(inputVal.toLowerCase() === "admin") { switchScreen('screen-admin-login'); return; }
 
     studentID = inputVal;
-    if(document.getElementById('rememberMe').checked) { localStorage.setItem('savedNID', studentID); } 
-    else { localStorage.removeItem('savedNID'); }
+    studentBatch = document.getElementById('batchSelect').value; // حفظ الفرقة المختارة
+    
+    if(document.getElementById('rememberMe').checked) { 
+        localStorage.setItem('savedNID', studentID); 
+        localStorage.setItem('savedBatch', studentBatch);
+    } else { 
+        localStorage.removeItem('savedNID'); 
+        localStorage.removeItem('savedBatch');
+    }
 
     showSkeleton();
     try {
-      const res = await apiCall("check_status", { nationalId: studentID });
+      // إرسال رقم الطالب والفرقة للسيرفر للبحث السريع
+      const res = await apiCall("check_status", { nationalId: studentID, batch: studentBatch });
       hideSkeleton();
       
       if(res.status === "maintenance") {
@@ -600,7 +640,7 @@
          switchScreen('screen-maintenance'); return;
       }
       else if(res.status === "locked") { renderScreenOnly('screen-id'); showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error"); }
-      else if(res.status === "not_found") { renderScreenOnly('screen-id'); showToast('الرقم القومي غير مسجل بالنظام.', "error"); }
+      else if(res.status === "not_found") { renderScreenOnly('screen-id'); showToast('الرقم القومي غير مسجل بالفرقة المحددة.', "error"); }
       else {
         let replyHtml = "";
         if(res.adminReply && res.adminReply !== "") {
@@ -629,7 +669,7 @@
     showSkeleton();
     try {
       const action = authMode === 'register' ? "register" : "login";
-      const res = await apiCall(action, { nationalId: studentID, password: pass });
+      const res = await apiCall(action, { nationalId: studentID, password: pass, batch: studentBatch });
       hideSkeleton();
       
       if(res.status === "maintenance") { document.getElementById('mainHeader').style.display = 'none'; switchScreen('screen-maintenance');}
@@ -892,5 +932,6 @@
     }
   }
 </script>
+<!-- --------------------------------------- -->
 </body>
 </html>
