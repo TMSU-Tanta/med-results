@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://script.google.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   
   <style>
@@ -347,12 +347,19 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8Xa77sif0ZvGGiy3Wp
     }
   }
 
-  function handleFirebaseResult(data) { /* نفس الدالة القديمة بالضبط... */ 
+// 📊 تعديل مسار الإحصائيات عشان يشتغل على كل متصفحات الموبايل
+  function handleFirebaseResult(data) {
     hideSkeleton(); document.getElementById('resName').innerText = data.name || '-'; document.getElementById('resNid').innerText = studentID; document.getElementById('resBatch').innerText = studentBatch; document.getElementById('resRank').innerText = data.rank || '-'; let totalHtml = data.total || '-'; document.getElementById('resTotal').innerHTML = totalHtml; finalPctValue = data.percentage || '0'; applyDynamicTheme(finalPctValue); setTimeout(() => { animateCircularProgress(finalPctValue); }, 300);
     const container = document.getElementById('semestersContainer'); container.innerHTML = ''; 
-    if (data.semesters && data.semesters.length > 0) { data.semesters.forEach(sem => { let scoreHtml = sem.score; if (sem.max && sem.score !== '-') { scoreHtml = `${sem.score} <span style="font-size:14px; opacity:0.6">/ ${sem.max}</span>`; } container.innerHTML += `<div class="sem-item"><div class="sem-header"><div class="sem-info"><div class="sem-icon"><i class="fa-solid fa-book"></i></div><span class="sem-name">${sem.name}</span></div><span class="sem-score" dir="ltr" style="display:inline-block;">${scoreHtml}</span></div></div>`; }); }
+    
+    // رسم السجل الأكاديمي والرسم البياني الخطي
+    if (data.semesters && data.semesters.length > 0) { data.semesters.forEach(sem => { let scoreHtml = sem.score; if (sem.max && sem.score !== '-') { scoreHtml = `${sem.score} <span style="font-size:14px; opacity:0.6">/ ${sem.max}</span>`; } container.innerHTML += `<div class="sem-item"><div class="sem-header"><div class="sem-info"><div class="sem-icon"><i class="fa-solid fa-book"></i></div><span class="sem-name">${sem.name}</span></div><span class="sem-score" dir="ltr" style="display:inline-block;">${scoreHtml}</span></div></div>`; }); setTimeout(() => { drawLineChart(data.semesters); }, 300); }
+    
     document.getElementById('cohortChart').style.display = 'none'; const cohortContainer = document.getElementById('cohortChart').parentElement; if(!document.getElementById('cohortLoading')) { cohortContainer.innerHTML += '<div id="cohortLoading" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--primary); font-weight:bold; font-size:12px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل الإحصائيات...</div>'; }
-    fetch(`${FIREBASE_URL}/stats/${studentBatch}.json`).then(r=>r.json()).then(stats=>{ if (stats) { document.getElementById('cohortLoading')?.remove(); document.getElementById('cohortChart').style.display = 'block'; setTimeout(() => { drawChart(stats); }, 200); } }).catch(e=>{});
+    
+    // 👈 السطر السحري اللي بيظبط الروابط العربي
+    fetch(`${FIREBASE_URL}/stats/${encodeURIComponent(studentBatch)}.json`).then(r=>r.json()).then(stats=>{ if (stats) { document.getElementById('cohortLoading')?.remove(); document.getElementById('cohortChart').style.display = 'block'; setTimeout(() => { drawChart(stats); }, 200); } }).catch(e=>{});
+    
     document.getElementById('mainHeader').style.display = 'none'; document.getElementById('mainTopBar').style.display = 'flex'; document.getElementById('privacyBtn').style.display = 'flex'; document.getElementById('fabContainer').style.display = 'flex'; switchScreen('screen-result'); 
   }
 
