@@ -392,10 +392,10 @@
 </div>
 
 <script>
+ // ==========================================
+  // 👇 انسخ من أول هنا وشفّره (متنساش تحط اللينك بتاعك)
   // ==========================================
-  // 👇 حط لينكك هنا وشفر الجافاسكريبت وارفع التحديث على جيت هاب
-  // ==========================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdfQ3IG5FlHd0UOTNeLOhycsWfHZdb7w0-qDJkpbDY_Ft7VPYfGlrsXP69soXlDlPx/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFnvN30OxUmkjeQGcyInmPLo3m44nrg--ClFQlibDRvz-KZXIRnHvkc1c6M50ubnuw/exec"; 
   const API_KEY = "TANTA_MED_2026_SECURE41TMSU";
 
   let studentID = ""; let studentBatch = ""; let authMode = ""; 
@@ -408,22 +408,14 @@
     let str = dateStr.toString().replace('T', ' ');
     let parts = str.split(' ');
     if (parts.length < 2) return str;
-    
     let datePart = parts[0];
-    if (hideYear && datePart.length > 5) {
-        datePart = datePart.substring(5); 
-    }
-    
+    if (hideYear && datePart.length > 5) { datePart = datePart.substring(5); }
     let timeParts = parts[1].split(':');
     if (timeParts.length < 2) return str;
-    
     let h = parseInt(timeParts[0], 10);
     let m = timeParts[1];
     let ampm = h >= 12 ? 'م' : 'ص';
-    
-    h = h % 12;
-    h = h ? h : 12; 
-    
+    h = h % 12; h = h ? h : 12; 
     return `${datePart} - ${h}:${m} ${ampm}`;
   }
 
@@ -458,14 +450,9 @@
   function validateNID() {
     const input = document.getElementById('nationalId').value.trim();
     const batch = document.getElementById('batchSelect').value;
-    
-    if (input.toLowerCase() === 'admin') { 
-        document.getElementById('btnStep1').disabled = false; 
-    } else if (input.length >= 3 && batch !== "") { 
-        document.getElementById('btnStep1').disabled = false; 
-    } else { 
-        document.getElementById('btnStep1').disabled = true; 
-    }
+    if (input.toLowerCase() === 'admin') { document.getElementById('btnStep1').disabled = false; } 
+    else if (input.length >= 3 && batch !== "") { document.getElementById('btnStep1').disabled = false; } 
+    else { document.getElementById('btnStep1').disabled = true; }
   }
 
   function toggleTheme() { 
@@ -566,7 +553,6 @@
 
   async function apiCall(action, dataObj, retries = 4) {
     dataObj.action = action; dataObj.apiKey = API_KEY;
-    
     for (let i = 0; i < retries; i++) {
       try {
         const response = await fetch(SCRIPT_URL, {
@@ -574,7 +560,6 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(dataObj)
         });
-        
         if (!response.ok) throw new Error("Server Timeout");
         return await response.json();
       } catch (err) {
@@ -601,6 +586,8 @@
     hideSkeleton();
     let target = document.getElementById(screenId);
     if(target) target.classList.add('active'); else document.getElementById('screen-id').classList.add('active');
+    
+    // رسم الخطوط البيانية عند فتح صفحة النتيجة (لو جاهزة)
     if(screenId === 'screen-result') { 
         if(chartDataCache) setTimeout(() => { drawChart(chartDataCache); }, 200); 
         if(lineChartDataCache) setTimeout(() => { drawLineChart(lineChartDataCache); }, 200);
@@ -907,6 +894,26 @@
     });
   }
 
+  // 🔥 سحب الإحصائيات في الخلفية بدون ما نأخر ظهور الدرجات
+  async function fetchCohortStatsBackground(batch) {
+    try {
+      let res = await apiCall("get_cohort_stats", { batch: batch });
+      if (res.status === "success") {
+        chartDataCache = res.stats;
+        let loadingEl = document.getElementById('cohortLoading');
+        if(loadingEl) loadingEl.remove();
+        document.getElementById('cohortChart').style.display = 'block';
+        drawChart(res.stats);
+      } else {
+        let loadingEl = document.getElementById('cohortLoading');
+        if(loadingEl) loadingEl.innerHTML = '<span style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i> تعذر جلب الإحصائيات</span>';
+      }
+    } catch(e) {
+      let loadingEl = document.getElementById('cohortLoading');
+      if(loadingEl) loadingEl.innerHTML = '<span style="color:var(--danger)"><i class="fa-solid fa-wifi"></i> خطأ في الاتصال</span>';
+    }
+  }
+
   function handleResult(res) {
     document.getElementById('resName').innerText = res.name || '-';
     document.getElementById('resNid').innerText = res.nid || studentID;
@@ -932,8 +939,25 @@
       lineChartDataCache = res.semesters;
     }
 
-    if (res.cohortStats) { chartDataCache = res.cohortStats; } 
+    // ⚡ رسم خط التطور فوراً لأن داتا السمسترات موجودة فعلاً
+    if (lineChartDataCache) setTimeout(() => { drawLineChart(lineChartDataCache); }, 200);
 
+    // ⚡ قرار رسم الأعمدة البيانية (الإحصائيات)
+    const cohortContainer = document.getElementById('cohortChart').parentElement;
+    if (res.cohortStats) {
+      // لو الكاش جاهز، ارسمه فوراً
+      chartDataCache = res.cohortStats;
+      setTimeout(() => { drawChart(chartDataCache); }, 200);
+    } else if (res.needs_cohort_fetch) {
+      // لو السيرفر مكسل، هنحط لودينج هنا ونروح نجيبه في الخلفية
+      document.getElementById('cohortChart').style.display = 'none';
+      if(!document.getElementById('cohortLoading')) {
+          cohortContainer.innerHTML += '<div id="cohortLoading" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--primary); font-weight:bold; font-size:12px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحليل الدفعة...</div>';
+      }
+      fetchCohortStatsBackground(res.batch);
+    } 
+
+    // 🔥 فتح شاشة النتيجة فوراً بدون أي انتظار
     document.getElementById('mainHeader').style.display = 'none'; 
     document.getElementById('mainTopBar').style.display = 'flex'; 
     document.getElementById('privacyBtn').style.display = 'flex';
