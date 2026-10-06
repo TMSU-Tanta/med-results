@@ -761,31 +761,54 @@
     } catch(err) { hideSkeleton(); renderScreenOnly('screen-admin-login'); showToast('حدث خطأ', "error"); }
   }
 
-  async function fetchAdminData() {
+ async function fetchAdminData() {
     try {
+      // 🔥 سحب الإحصائيات الكلية من فايربيز بسرعة الضوء
+      fetch(`${FIREBASE_URL}/batches.json`).then(res => res.json()).then(allBatches => {
+         let total = 0; let reg = 0;
+         if(allBatches) {
+            for(let b in allBatches) {
+               for(let nid in allBatches[b]) {
+                  total++;
+                  if(allBatches[b][nid].password && allBatches[b][nid].password !== "") reg++;
+               }
+            }
+         }
+         document.getElementById('adminStatTotal').innerText = total;
+         document.getElementById('adminStatReg').innerText = reg;
+      }).catch(e => {});
+
+      // سحب الشكاوى وسجلات النظام من جوجل سكريبت
       let res = await apiCall("admin_get_data", { adminCode: activeAdminCode, adminPass: activeAdminPass });
       if(res.status === "success") {
-          document.getElementById('adminStatTotal').innerText = res.stats.total;
-          document.getElementById('adminStatReg').innerText = res.stats.registered;
           document.getElementById('adminStatRep').innerText = res.stats.reports;
+          
           let logsHtml = "";
           if(res.adminLogs && res.adminLogs.length > 0) {
-              res.adminLogs.forEach(l => { logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted); font-size:11px;">${formatDateTime12(l.date, true)}</span></div>`; });
+              res.adminLogs.forEach(l => { 
+                  let formattedDate = formatDateTime12(l.date, true);
+                  logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted); font-size:11px;">${formattedDate}</span></div>`; 
+              });
           } else { logsHtml = "<div style='text-align:center; font-size:12px; color:var(--text-muted);'>لا توجد سجلات حديثة</div>"; }
           document.getElementById('adminLogsContainer').innerHTML = logsHtml;
+          
           let reportsHtml = "";
           if(res.issues && res.issues.length > 0) {
             res.issues.forEach(issue => {
               let isAutoBan = issue.issue.includes("محظور أمنياً");
-              let btnAction = isAutoBan ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>` : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`;
-              reportsHtml += `<div class="issue-card" id="issue-card-${issue.rowIdx}"><p><b>👤 ${issue.name}</b> (${issue.nid})</p>${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}<div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:11px; color:var(--text-muted);">${formatDateTime12(issue.date, false)}</span>${btnAction}</div></div>`;
+              let btnAction = isAutoBan 
+                ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>`
+                : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`;
+              
+              let formattedDate = formatDateTime12(issue.date, false);
+              reportsHtml += `<div class="issue-card" id="issue-card-${issue.rowIdx}"><p><b>👤 ${issue.name}</b> (${issue.nid})</p>${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}<div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:11px; color:var(--text-muted);">${formattedDate}</span>${btnAction}</div></div>`;
             });
           } else { reportsHtml = `<div style="text-align:center; padding:20px; color:var(--success); font-weight:bold;"><i class="fa-solid fa-face-smile"></i> لا توجد شكاوى معلقة!</div>`; }
           document.getElementById('adminReportsContainer').innerHTML = reportsHtml;
       }
     } catch(e) {}
   }
-
+  
   async function toggleMaintenance() {
     let toggleBtn = document.getElementById('maintenanceToggle'); toggleBtn.disabled = true;
     try {
