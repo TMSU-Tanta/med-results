@@ -392,10 +392,10 @@
 </div>
 
 <script>
- // ==========================================
+// ==========================================
   // 👇 انسخ من أول هنا وشفّره (متنساش تحط اللينك بتاعك)
   // ==========================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxMQeA49wd2j4bA5Sc4dJSWA9sxuBxNLIYjcuJuDR7-9f6848_EdhbRVFaptGptEe82/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby06bs7VIikYQK0NfhU4MnBL6U7Buf4vaROJufeC6P4FYAMFRcL4CmKhZ-XMpnWY7ud/exec"; 
   const API_KEY = "TANTA_MED_2026_SECURE41TMSU";
 
   let studentID = ""; let studentBatch = ""; let authMode = ""; 
@@ -442,7 +442,9 @@
         validateNID(); 
     }
     let initialHash = window.location.hash.substring(1);
-    if (!initialHash || (initialHash !== 'screen-id' && currentHash !== 'screen-admin-login' && studentID === "")) {
+    
+    // 🔥 تم تصحيح الغلطة المسببة للشاشة البيضاء هنا
+    if (!initialHash || (initialHash !== 'screen-id' && initialHash !== 'screen-admin-login' && studentID === "")) {
         window.location.hash = 'screen-id'; renderScreenOnly('screen-id');
     } else { renderScreenOnly(initialHash); }
   };
@@ -587,7 +589,6 @@
     let target = document.getElementById(screenId);
     if(target) target.classList.add('active'); else document.getElementById('screen-id').classList.add('active');
     
-    // رسم الخطوط البيانية عند فتح صفحة النتيجة (لو جاهزة)
     if(screenId === 'screen-result') { 
         if(chartDataCache) setTimeout(() => { drawChart(chartDataCache); }, 200); 
         if(lineChartDataCache) setTimeout(() => { drawLineChart(lineChartDataCache); }, 200);
@@ -628,6 +629,10 @@
       }
       else if(res.status === "locked") { renderScreenOnly('screen-id'); showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error"); }
       else if(res.status === "not_found") { renderScreenOnly('screen-id'); showToast('الرقم القومي غير مسجل بالفرقة المحددة.', "error"); }
+      
+      // 🔥 إضافة جدار حماية لمنع الشاشة البيضاء نهائياً لو السيرفر بعت إيرور
+      else if(res.status === "error") { renderScreenOnly('screen-id'); showToast(res.message || 'حدث خطأ في جلب البيانات', "error"); }
+      
       else {
         let replyHtml = "";
         if(res.adminReply && res.adminReply !== "") {
@@ -668,6 +673,7 @@
          document.getElementById('mainTopBar').style.display = 'flex'; 
          switchScreen('screen-withheld');
       }
+      // 🔥 حماية إضافية هنا كمان
       else if(res.status === "error") { renderScreenOnly('screen-auth'); showToast(res.message || 'حدث خطأ غير متوقع.', "error"); }
       else handleResult(res);
     } catch(err) { hideSkeleton(); renderScreenOnly('screen-auth'); showToast('حدث خطأ في النظام: برجاء المحاولة لاحقاً', "error"); }
@@ -894,7 +900,6 @@
     });
   }
 
-  // 🔥 سحب الإحصائيات في الخلفية بدون ما نأخر ظهور الدرجات
   async function fetchCohortStatsBackground(batch) {
     try {
       let res = await apiCall("get_cohort_stats", { batch: batch });
@@ -939,17 +944,13 @@
       lineChartDataCache = res.semesters;
     }
 
-    // ⚡ رسم خط التطور فوراً لأن داتا السمسترات موجودة فعلاً
     if (lineChartDataCache) setTimeout(() => { drawLineChart(lineChartDataCache); }, 200);
 
-    // ⚡ قرار رسم الأعمدة البيانية (الإحصائيات)
     const cohortContainer = document.getElementById('cohortChart').parentElement;
     if (res.cohortStats) {
-      // لو الكاش جاهز، ارسمه فوراً
       chartDataCache = res.cohortStats;
       setTimeout(() => { drawChart(chartDataCache); }, 200);
     } else if (res.needs_cohort_fetch) {
-      // لو السيرفر مكسل، هنحط لودينج هنا ونروح نجيبه في الخلفية
       document.getElementById('cohortChart').style.display = 'none';
       if(!document.getElementById('cohortLoading')) {
           cohortContainer.innerHTML += '<div id="cohortLoading" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--primary); font-weight:bold; font-size:12px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحليل الدفعة...</div>';
@@ -957,7 +958,6 @@
       fetchCohortStatsBackground(res.batch);
     } 
 
-    // 🔥 فتح شاشة النتيجة فوراً بدون أي انتظار
     document.getElementById('mainHeader').style.display = 'none'; 
     document.getElementById('mainTopBar').style.display = 'flex'; 
     document.getElementById('privacyBtn').style.display = 'flex';
