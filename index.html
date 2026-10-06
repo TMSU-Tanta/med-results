@@ -648,7 +648,7 @@
     } catch(err) { hideSkeleton(); renderScreenOnly('screen-id'); showToast('حدث خطأ في الاتصال، تأكد من الإنترنت.', "error"); }
   }
 
-  async function step2Auth() {
+async function step2Auth() {
     let pass = document.getElementById('password').value.trim();
     if(!pass) { showToast('برجاء إدخال كلمة المرور', "error"); return; }
     if(authMode === 'register' && pass.length < 4) { showToast('كلمة المرور يجب أن تكون 4 أحرف/أرقام على الأقل.', "error"); return; }
@@ -661,21 +661,31 @@
         if (currentStudentData.password.toString() === pass) {
             handleFirebaseResult(currentStudentData);
         } else {
-            hideSkeleton(); showToast(`كلمة مرور خاطئة`, "error");
+            hideSkeleton(); 
+            renderScreenOnly('screen-auth'); // 🔥 السطر ده اللي هيرجع الشاشة تاني
+            showToast(`كلمة مرور خاطئة`, "error");
         }
     } else {
         // إنشاء الباسورد بيتبعت لجوجل سكريبت عشان يتأكد إنه مش متكرر ويتسجل صح
         try {
             const res = await apiCall("register", { nationalId: studentID, password: pass, batch: studentBatch });
-            if(res.status === "error") { hideSkeleton(); showToast(res.message, "error"); }
+            if(res.status === "error") { 
+               hideSkeleton(); 
+               renderScreenOnly('screen-auth'); // 🔥 إرجاع الشاشة لو فيه خطأ
+               showToast(res.message, "error"); 
+            }
             else { 
                currentStudentData.password = pass; // تحديث محلي
                handleFirebaseResult(currentStudentData); // عرض النتيجة
             }
-        } catch(err) { hideSkeleton(); showToast('حدث خطأ أثناء التسجيل.', "error"); }
+        } catch(err) { 
+            hideSkeleton(); 
+            renderScreenOnly('screen-auth'); // 🔥 إرجاع الشاشة لو فيه خطأ اتصال
+            showToast('حدث خطأ أثناء التسجيل.', "error"); 
+        }
     }
   }
-
+  
   // 🔥 دالة سحب إحصائيات الدفعة في الخلفية من فايربيز بدون تأخير
   async function fetchCohortStatsBackground() {
     try {
