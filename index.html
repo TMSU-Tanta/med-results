@@ -7,15 +7,20 @@
   
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://script.googleusercontent.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   
   <meta property="og:title" content="بوابة نتائج طب طنطا">
   <meta property="og:description" content="استعلم الآن عن نتيجتك الأكاديمية والترتيب العام على الدفعة بسهولة وأمان.">
   <meta property="og:type" content="website">
 
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- 🔥 تحميل الفونت بسرعة -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <!-- 🔥 السر هنا: استخدام defer عشان الموبايل ميهنجش وهو بيحمل المكاتب التقيلة -->
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -31,11 +36,12 @@
 
     .header-logo { width: 65px; height: 65px; background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 20px; display: inline-flex; justify-content: center; align-items: center; font-size: 28px; color: var(--theme-color); margin: 0 auto 15px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: color 0.3s;}
     .header-section { text-align: center; margin-bottom: 30px; margin-top:20px; }
-    .header-section h1 { font-size: 22px; font-weight: 800; }
+    .header-section h1 { font-size: 22px; font-weight: 900; }
     
-    .screen { display: none; animation: slideUp 0.4s ease forwards; }
+    /* 🔥 تشغيل كارت الشاشة (GPU) لتسريع الأنميشن على الموبايل */
+    .screen { display: none; animation: slideUp 0.3s ease forwards; transform: translateZ(0); will-change: transform, opacity; }
     .screen.active { display: block; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
     .auth-card { background: var(--card-bg); padding: 30px 20px; border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); border: 1px solid var(--border-light); }
     .input-group { margin-bottom: 15px; position: relative; }
@@ -47,16 +53,16 @@
     .input-group select { cursor: pointer; }
     .select-arrow { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
 
-    .remember-me { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; cursor: pointer; }
+    .remember-me { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 15px; cursor: pointer; }
     .remember-me input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
 
     .btn-main { width: 100%; padding: 18px; margin-top: 10px; background: var(--primary); color: #ffffff; border: none; border-radius: 16px; font-size: 16px; font-weight: 800; display: flex; justify-content: center; gap: 10px; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2); transition: all 0.2s; cursor: pointer; }
     .btn-main:active { transform: scale(0.97); } 
     .btn-main:disabled { background: var(--text-muted); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
 
-    .skeleton-container { display: none; width: 100%; }
+    .skeleton-container { display: none; width: 100%; transform: translateZ(0); }
     .skeleton-card { background: var(--card-bg); border-radius: 24px; padding: 25px; border: 1px solid var(--border-light); }
-    .skeleton { background: linear-gradient(110deg, var(--border-light) 8%, var(--bg-body) 18%, var(--border-light) 33%); background-size: 200% 100%; animation: 1.5s shine linear infinite; border-radius: 10px; }
+    .skeleton { background: linear-gradient(110deg, var(--border-light) 8%, var(--bg-body) 18%, var(--border-light) 33%); background-size: 200% 100%; animation: 1.2s shine linear infinite; border-radius: 10px; }
     @keyframes shine { to { background-position-x: -200%; } }
     .sk-avatar { width: 70px; height: 70px; border-radius: 50%; margin: 0 auto 15px auto; }
     .sk-title { width: 60%; height: 20px; margin: 0 auto 20px auto; }
@@ -120,7 +126,7 @@
     .resolve-btn { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
 
     #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none;}
-    .toast-msg { background: var(--card-bg); color: var(--text-dark); padding: 15px 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-right: 5px solid var(--theme-color); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; animation: slideDown 0.4s ease forwards; pointer-events: auto;}
+    .toast-msg { background: var(--card-bg); color: var(--text-dark); padding: 15px 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-right: 5px solid var(--theme-color); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; animation: slideDown 0.3s ease forwards; pointer-events: auto;}
     .toast-msg.error { border-color: var(--danger); }
     .toast-msg.success { border-color: var(--success); }
     .toast-msg.gold { border-color: var(--gold); background: linear-gradient(135deg, #fff, #fffbeb); color: #0f172a !important; }
@@ -198,7 +204,7 @@
 
     <div class="input-group">
       <i class="fa-regular fa-id-card input-icon"></i>
-      <input type="text" id="nationalId" placeholder="الرقم القومي" oninput="validateNID()">
+      <input type="text" id="nationalId" placeholder="الرقم القومي او رقم الجواز" oninput="validateNID()">
     </div>
     <label class="remember-me"><input type="checkbox" id="rememberMe"> تذكر بياناتي</label>
     <button class="btn-main" id="btnStep1" onclick="step1CheckID()" disabled>استمرار</button>
@@ -392,8 +398,8 @@
 </div>
 
 <script>
-// ==========================================
-  // 👇 انسخ من أول هنا وشفّره (متنساش تحط اللينك بتاعك)
+  // ==========================================
+  // 👇 حط لينك الـ Web App بتاعك هنا
   // ==========================================
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4tg8PgNU1BY-fnw75KJtXnMsoytSLSDuRdFkolLIU43lUj-G5N-FC_0dxsYMyhkvl/exec"; 
   const API_KEY = "TANTA_MED_2026_SECURE41TMSU";
@@ -429,7 +435,7 @@
     else if(type==="gold") icon = "fa-trophy";
     toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${msg}</span>`;
     container.appendChild(toast);
-    setTimeout(() => { toast.style.animation = 'fadeOut 0.4s ease forwards'; setTimeout(() => toast.remove(), 400); }, duration);
+    setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 400); }, duration);
   }
 
   window.onload = function() {
@@ -442,8 +448,6 @@
         validateNID(); 
     }
     let initialHash = window.location.hash.substring(1);
-    
-    // 🔥 تم تصحيح الغلطة المسببة للشاشة البيضاء هنا
     if (!initialHash || (initialHash !== 'screen-id' && initialHash !== 'screen-admin-login' && studentID === "")) {
         window.location.hash = 'screen-id'; renderScreenOnly('screen-id');
     } else { renderScreenOnly(initialHash); }
@@ -589,9 +593,10 @@
     let target = document.getElementById(screenId);
     if(target) target.classList.add('active'); else document.getElementById('screen-id').classList.add('active');
     
+    // 🔥 تأخير رسم المخططات البيانية عشان الموبايل ميوقفش الشاشة (Paint Yielding)
     if(screenId === 'screen-result') { 
-        if(chartDataCache) setTimeout(() => { drawChart(chartDataCache); }, 200); 
-        if(lineChartDataCache) setTimeout(() => { drawLineChart(lineChartDataCache); }, 200);
+        if(chartDataCache) setTimeout(() => { drawChart(chartDataCache); }, 400); 
+        if(lineChartDataCache) setTimeout(() => { drawLineChart(lineChartDataCache); }, 400);
     }
   }
 
@@ -629,10 +634,7 @@
       }
       else if(res.status === "locked") { renderScreenOnly('screen-id'); showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error"); }
       else if(res.status === "not_found") { renderScreenOnly('screen-id'); showToast('الرقم القومي غير مسجل بالفرقة المحددة.', "error"); }
-      
-      // 🔥 إضافة جدار حماية لمنع الشاشة البيضاء نهائياً لو السيرفر بعت إيرور
       else if(res.status === "error") { renderScreenOnly('screen-id'); showToast(res.message || 'حدث خطأ في جلب البيانات', "error"); }
-      
       else {
         let replyHtml = "";
         if(res.adminReply && res.adminReply !== "") {
@@ -673,7 +675,6 @@
          document.getElementById('mainTopBar').style.display = 'flex'; 
          switchScreen('screen-withheld');
       }
-      // 🔥 حماية إضافية هنا كمان
       else if(res.status === "error") { renderScreenOnly('screen-auth'); showToast(res.message || 'حدث خطأ غير متوقع.', "error"); }
       else handleResult(res);
     } catch(err) { hideSkeleton(); renderScreenOnly('screen-auth'); showToast('حدث خطأ في النظام: برجاء المحاولة لاحقاً', "error"); }
@@ -866,6 +867,7 @@
   }
 
   function drawChart(stats) {
+    if(!window.Chart) return;
     if (cohortChartInstance) cohortChartInstance.destroy(); 
     const ctx = document.getElementById('cohortChart').getContext('2d');
     cohortChartInstance = new Chart(ctx, {
@@ -879,6 +881,7 @@
   }
 
   function drawLineChart(semestersData) {
+    if(!window.Chart) return;
     if (progressLineChartInstance) progressLineChartInstance.destroy(); 
     const ctx = document.getElementById('progressLineChart').getContext('2d');
     
@@ -908,7 +911,7 @@
         let loadingEl = document.getElementById('cohortLoading');
         if(loadingEl) loadingEl.remove();
         document.getElementById('cohortChart').style.display = 'block';
-        drawChart(res.stats);
+        setTimeout(() => { drawChart(res.stats); }, 200);
       } else {
         let loadingEl = document.getElementById('cohortLoading');
         if(loadingEl) loadingEl.innerHTML = '<span style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i> تعذر جلب الإحصائيات</span>';
@@ -931,7 +934,7 @@
     
     finalPctValue = res.percentage || '0';
     applyDynamicTheme(finalPctValue); 
-    setTimeout(() => { animateCircularProgress(finalPctValue); }, 500);
+    setTimeout(() => { animateCircularProgress(finalPctValue); }, 300);
 
     const container = document.getElementById('semestersContainer');
     container.innerHTML = ''; 
@@ -944,12 +947,12 @@
       lineChartDataCache = res.semesters;
     }
 
-    if (lineChartDataCache) setTimeout(() => { drawLineChart(lineChartDataCache); }, 200);
+    if (lineChartDataCache) setTimeout(() => { drawLineChart(lineChartDataCache); }, 400);
 
     const cohortContainer = document.getElementById('cohortChart').parentElement;
     if (res.cohortStats) {
       chartDataCache = res.cohortStats;
-      setTimeout(() => { drawChart(chartDataCache); }, 200);
+      setTimeout(() => { drawChart(chartDataCache); }, 400);
     } else if (res.needs_cohort_fetch) {
       document.getElementById('cohortChart').style.display = 'none';
       if(!document.getElementById('cohortLoading')) {
@@ -966,9 +969,9 @@
 
     if(res.rank && parseInt(res.rank) <= 10) {
         setTimeout(() => {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#2563eb', '#10b981'] });
+            if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#2563eb', '#10b981'] });
             showToast(`ألف مبروك! أنت من أوائل الدفعة (المركز الـ ${res.rank}) 🏆`, "gold", 6000);
-        }, 1000);
+        }, 800);
     }
   }
 </script>
