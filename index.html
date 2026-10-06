@@ -170,11 +170,12 @@
     <button class="btn-main" onclick="step2Auth()">عرض النتائج</button>
   </div>
 
-  <div id="screen-admin-login" class="screen auth-card">
+<div id="screen-admin-login" class="screen auth-card">
     <h3 style="text-align:center; color:var(--danger); font-weight:900; margin-bottom:15px;">تسجيل دخول المشرف</h3>
-    <div class="input-group"><i class="fa-solid fa-hashtag input-icon"></i><input type="text" id="adminCodeInput" placeholder="كود المشرف"></div>
+    <div class="input-group"><i class="fa-solid fa-hashtag input-icon"></i><input type="text" id="adminCodeInput" placeholder="كود المشرف (مثال: admin)"></div>
     <div class="input-group"><i class="fa-solid fa-user-shield input-icon"></i><input type="password" id="adminPassword" placeholder="كلمة مرور الإدارة"><i class="fa-regular fa-eye toggle-pass" onclick="togglePass(this, 'adminPassword')"></i></div>
-    <button class="btn-main" style="background:var(--danger)" id="btnAdminEnter" onclick="adminLogin()">دخول للوحة التحكم</button>
+    <!-- 🔥 التعديل هنا: منعنا الزرار من عمل ريفريش -->
+    <button type="button" class="btn-main" style="background:var(--danger)" id="btnAdminEnter" onclick="adminLogin(event)">دخول للوحة التحكم</button>
   </div>
 
   <div id="screen-admin-dashboard" class="screen result-container" style="border-color: var(--danger);">
@@ -455,13 +456,41 @@
   // ==========================================
   // 👇 دوال الأدمن المحمية (مربوطة بالخزنة)
   // ==========================================
-  async function adminLogin() {
-    let code = document.getElementById('adminCodeInput').value.trim(); let pass = document.getElementById('adminPassword').value.trim();
-    if(!code || !pass) { showToast("برجاء إدخال الكود وكلمة المرور", "error"); return; } showSkeleton();
+async function adminLogin(e) {
+    if(e) e.preventDefault(); // 👈 الفرملة اللي بتمنع الريفريش
+    let code = document.getElementById('adminCodeInput').value.trim(); 
+    let pass = document.getElementById('adminPassword').value.trim();
+    if(!code || !pass) { showToast("برجاء إدخال الكود وكلمة المرور", "error"); return; }
+    
+    showSkeleton();
     try {
-      let res = await apiCall("admin_login", { adminCode: code, adminPass: pass }); hideSkeleton();
-      if(res.status === "success") { activeAdminCode = code; activeAdminPass = pass; if(res.role === "master") { document.getElementById('masterAdminSection').style.display = 'block'; document.getElementById('maintenanceToggle').checked = res.isMaintenance; document.getElementById('adminLogsContainer').innerHTML = '<div style="text-align:center; padding:10px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التحميل...</div>'; } else { document.getElementById('masterAdminSection').style.display = 'none'; } document.getElementById('adminBadgeName').innerHTML = res.role === "master" ? `<i class="fa-solid fa-crown" style="color:var(--gold)"></i> المدير العام` : "المشرف: " + res.adminName; document.getElementById('mainHeader').style.display = 'none'; document.getElementById('mainTopBar').style.display = 'none'; document.getElementById('fabContainer').style.display = 'flex'; switchScreen('screen-admin-dashboard'); fetchAdminData(); } else { renderScreenOnly('screen-admin-login'); showToast(res.message, "error"); activeAdminCode = ""; activeAdminPass = ""; }
-    } catch(err) { hideSkeleton(); renderScreenOnly('screen-admin-login'); showToast('حدث خطأ', "error"); }
+      let res = await apiCall("admin_login", { adminCode: code, adminPass: pass }); 
+      hideSkeleton();
+      if(res.status === "success") { 
+          activeAdminCode = code; activeAdminPass = pass; 
+          if(res.role === "master") { 
+              document.getElementById('masterAdminSection').style.display = 'block'; 
+              document.getElementById('maintenanceToggle').checked = res.isMaintenance; 
+              document.getElementById('adminLogsContainer').innerHTML = '<div style="text-align:center; padding:10px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التحميل...</div>'; 
+          } else { 
+              document.getElementById('masterAdminSection').style.display = 'none'; 
+          } 
+          document.getElementById('adminBadgeName').innerHTML = res.role === "master" ? `<i class="fa-solid fa-crown" style="color:var(--gold)"></i> المدير العام` : "المشرف: " + res.adminName; 
+          document.getElementById('mainHeader').style.display = 'none'; 
+          document.getElementById('mainTopBar').style.display = 'none'; 
+          document.getElementById('fabContainer').style.display = 'flex'; 
+          switchScreen('screen-admin-dashboard'); 
+          fetchAdminData(); 
+      } else { 
+          renderScreenOnly('screen-admin-login'); 
+          showToast(res.message, "error"); 
+          activeAdminCode = ""; activeAdminPass = ""; 
+      }
+    } catch(err) { 
+        hideSkeleton(); 
+        renderScreenOnly('screen-admin-login'); 
+        showToast('حدث خطأ في الاتصال بالسيرفر', "error"); 
+    }
   }
 
   async function fetchAdminData() {
