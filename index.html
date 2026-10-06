@@ -8,8 +8,10 @@
   <link rel="preconnect" href="https://script.google.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>>
-  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <!-- 🔥 روابط المكاتب المحدثة للرسم البياني والاحتفال (بدون مشاكل الكاش) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -170,18 +172,10 @@
     <button class="btn-main" onclick="step2Auth()">عرض النتائج</button>
   </div>
 
-<!-- 🔥 التعديل هنا: حولناها لـ form عشان نمنع الريفريش بتاع الكيبورد والزرار -->
   <form id="screen-admin-login" class="screen auth-card" onsubmit="adminLogin(event); return false;">
     <h3 style="text-align:center; color:var(--danger); font-weight:900; margin-bottom:15px;">تسجيل دخول المشرف</h3>
-    <div class="input-group">
-      <i class="fa-solid fa-hashtag input-icon"></i>
-      <input type="text" id="adminCodeInput" placeholder="كود المشرف (مثال: admin)">
-    </div>
-    <div class="input-group">
-      <i class="fa-solid fa-user-shield input-icon"></i>
-      <input type="password" id="adminPassword" placeholder="كلمة مرور الإدارة">
-      <i class="fa-regular fa-eye toggle-pass" onclick="togglePass(this, 'adminPassword')"></i>
-    </div>
+    <div class="input-group"><i class="fa-solid fa-hashtag input-icon"></i><input type="text" id="adminCodeInput" placeholder="كود المشرف"></div>
+    <div class="input-group"><i class="fa-solid fa-user-shield input-icon"></i><input type="password" id="adminPassword" placeholder="كلمة مرور الإدارة"><i class="fa-regular fa-eye toggle-pass" onclick="togglePass(this, 'adminPassword')"></i></div>
     <button type="submit" class="btn-main" style="background:var(--danger)" id="btnAdminEnter">دخول للوحة التحكم</button>
   </form>
 
@@ -277,13 +271,14 @@
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8Xa77sif0ZvGGiy3WpWL17b9s4y6a8fwzdJRy6Wg09cg9M-ItJsjrmCh0wu-jfkKC/exec"; // حط اللينك الجديد هنا
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_VH3WJ3rqDnAExFxd0-zDSxiXVu6DSTk4RpbR1SDKk0WrfOlf09QFtZRnsOUcG15j/exec"; // حط اللينك الجديد هنا بتاع جوجل سكريبت
   const FIREBASE_URL = "https://tantamedresults-default-rtdb.firebaseio.com/SystemData"; 
   const API_KEY = "TANTA_MED_2026_SECURE41TMSU";
 
-  // ... (الدوال المساعدة زي formatDateTime12 و showToast و toggleTheme زي ما هي بالضبط) ...
   let studentID = ""; let studentBatch = ""; let authMode = ""; 
   let activeAdminCode = ""; let activeAdminPass = ""; let finalPctValue = 0; let currentStudentPublic = null;
+  let cohortChartInstance = null; let progressLineChartInstance = null;
+  
   function formatDateTime12(dateStr, hideYear = false) { if (!dateStr) return ""; let str = dateStr.toString().replace('T', ' '); let parts = str.split(' '); if (parts.length < 2) return str; let datePart = parts[0]; if (hideYear && datePart.length > 5) { datePart = datePart.substring(5); } let timeParts = parts[1].split(':'); if (timeParts.length < 2) return str; let h = parseInt(timeParts[0], 10); let m = timeParts[1]; let ampm = h >= 12 ? 'م' : 'ص'; h = h % 12; h = h ? h : 12; return `${datePart} - ${h}:${m} ${ampm}`; }
   function showToast(msg, type="primary", duration=4000) { const container = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.className = `toast-msg ${type}`; let icon = "fa-circle-info"; if(type==="error") icon = "fa-circle-xmark"; else if(type==="success") icon = "fa-circle-check"; else if(type==="gold") icon = "fa-trophy"; toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${msg}</span>`; container.appendChild(toast); setTimeout(() => { toast.style.animation = 'fadeOut 0.3s ease forwards'; setTimeout(() => toast.remove(), 400); }, duration); }
   window.onload = function() { let savedNID = localStorage.getItem('savedNID'); let savedBatch = localStorage.getItem('savedBatch'); if(savedNID) { document.getElementById('nationalId').value = savedNID; if(savedBatch) document.getElementById('batchSelect').value = savedBatch; document.getElementById('rememberMe').checked = true; validateNID(); } let initialHash = window.location.hash.substring(1); if (!initialHash || (initialHash !== 'screen-id' && initialHash !== 'screen-admin-login' && studentID === "")) { window.location.hash = 'screen-id'; renderScreenOnly('screen-id'); } else { renderScreenOnly(initialHash); } };
@@ -303,7 +298,6 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8Xa77sif0ZvGGiy3Wp
   function renderScreenOnly(screenId) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); hideSkeleton(); let target = document.getElementById(screenId); if(target) target.classList.add('active'); else document.getElementById('screen-id').classList.add('active'); }
   function togglePass(iconElement, inputId) { const input = document.getElementById(inputId); if(input.type === "password") { input.type = "text"; iconElement.classList.replace("fa-eye", "fa-eye-slash"); iconElement.style.color="var(--theme-color)";} else { input.type = "password"; iconElement.classList.replace("fa-eye-slash", "fa-eye"); iconElement.style.color="var(--text-muted)";} }
 
-  // 🔥 تحويل الـ API لـ GET (عشان مستحيل يتعمله Block)
   async function apiCall(action, dataObj) {
     dataObj.action = action; dataObj.apiKey = API_KEY;
     const params = new URLSearchParams(dataObj).toString();
@@ -311,7 +305,6 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8Xa77sif0ZvGGiy3Wp
     if (!response.ok) throw new Error("Server Timeout"); return await response.json();
   }
 
-  // 🚀 دخول الطلبة المباشر من فايربيز
   async function step1CheckID() {
     let inputVal = document.getElementById('nationalId').value.trim(); if(inputVal.length < 3) return; if(inputVal.toLowerCase() === "admin") { switchScreen('screen-admin-login'); return; }
     studentID = inputVal; studentBatch = document.getElementById('batchSelect').value;
@@ -343,144 +336,57 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8Xa77sif0ZvGGiy3Wp
            const res = await apiCall("register", { nationalId: studentID, password: pass, batch: studentBatch });
            if(res.status === "error") { hideSkeleton(); renderScreenOnly('screen-auth'); showToast(res.message, "error"); }
            else { let safePass = pass.replace(/[.#$\[\]]/g, ""); let newRes = await fetch(`${FIREBASE_URL}/secure/${studentBatch}/${studentID}_${safePass}.json`); let newData = await newRes.json(); if(newData) handleFirebaseResult(newData); }
-       } catch(err) { hideSkeleton(); renderScreenOnly('screen-auth'); showToast('حدث خطأ', "error"); }
+       } catch(err) { hideSkeleton(); renderScreenOnly('screen-auth'); showToast('حدث خطأ بالاتصال', "error"); }
     }
   }
 
-// 📊 1. دالة عرض النتيجة (معدلة لتجنب أخطاء الشاشة المخفية)
+  // 🔥 دالة العرض الخالية من الأخطاء والرسومات اللي بتترسم في وقتها
   function handleFirebaseResult(data) {
-    hideSkeleton(); 
-    document.getElementById('resName').innerText = data.name || '-'; 
-    document.getElementById('resNid').innerText = studentID; 
-    document.getElementById('resBatch').innerText = studentBatch; 
-    document.getElementById('resRank').innerText = data.rank || '-'; 
-    let totalHtml = data.total || '-'; 
-    document.getElementById('resTotal').innerHTML = totalHtml; 
-    finalPctValue = data.percentage || '0'; 
-    applyDynamicTheme(finalPctValue); 
-    setTimeout(() => { animateCircularProgress(finalPctValue); }, 300);
-
-    const container = document.getElementById('semestersContainer'); 
-    container.innerHTML = ''; 
+    hideSkeleton(); document.getElementById('resName').innerText = data.name || '-'; document.getElementById('resNid').innerText = studentID; document.getElementById('resBatch').innerText = studentBatch; document.getElementById('resRank').innerText = data.rank || '-'; let totalHtml = data.total || '-'; document.getElementById('resTotal').innerHTML = totalHtml; finalPctValue = data.percentage || '0'; applyDynamicTheme(finalPctValue); setTimeout(() => { animateCircularProgress(finalPctValue); }, 300);
+    
+    const container = document.getElementById('semestersContainer'); container.innerHTML = ''; 
     if (data.semesters && data.semesters.length > 0) { 
       data.semesters.forEach(sem => { 
-        let scoreHtml = sem.score; 
-        if (sem.max && sem.score !== '-') { scoreHtml = `${sem.score} <span style="font-size:14px; opacity:0.6">/ ${sem.max}</span>`; } 
-        // استخدام insertAdjacentHTML بيمنع تدمير الشاشة ومسح الـ Canvas
+        let scoreHtml = sem.score; if (sem.max && sem.score !== '-') { scoreHtml = `${sem.score} <span style="font-size:14px; opacity:0.6">/ ${sem.max}</span>`; } 
         container.insertAdjacentHTML('beforeend', `<div class="sem-item"><div class="sem-header"><div class="sem-info"><div class="sem-icon"><i class="fa-solid fa-book"></i></div><span class="sem-name">${sem.name}</span></div><span class="sem-score" dir="ltr" style="display:inline-block;">${scoreHtml}</span></div></div>`); 
       }); 
     }
 
-    // 🔥 إظهار الشاشة (أولاً) عشان الرسم البياني يقدر يقرأ الأبعاد الصح
-    document.getElementById('mainHeader').style.display = 'none'; 
-    document.getElementById('mainTopBar').style.display = 'flex'; 
-    document.getElementById('privacyBtn').style.display = 'flex'; 
-    document.getElementById('fabContainer').style.display = 'flex'; 
-    switchScreen('screen-result'); 
+    document.getElementById('mainHeader').style.display = 'none'; document.getElementById('mainTopBar').style.display = 'flex'; document.getElementById('privacyBtn').style.display = 'flex'; document.getElementById('fabContainer').style.display = 'flex'; switchScreen('screen-result'); 
 
-    // تأخير الرسم البياني نصف ثانية لحد ما الشاشة تفتح بالكامل
-    if (data.semesters && data.semesters.length > 0) {
-      setTimeout(() => { drawLineChart(data.semesters); }, 500); 
-    }
-
-    document.getElementById('cohortChart').style.display = 'none'; 
-    const cohortContainer = document.getElementById('cohortChart').parentElement; 
-    if(!document.getElementById('cohortLoading')) { 
-      cohortContainer.insertAdjacentHTML('beforeend', '<div id="cohortLoading" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--primary); font-weight:bold; font-size:12px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل الإحصائيات...</div>'); 
-    }
-
+    if (data.semesters && data.semesters.length > 0) { setTimeout(() => { drawLineChart(data.semesters); }, 500); }
+    
+    document.getElementById('cohortChart').style.display = 'none'; const cohortContainer = document.getElementById('cohortChart').parentElement; 
+    if(!document.getElementById('cohortLoading')) { cohortContainer.insertAdjacentHTML('beforeend', '<div id="cohortLoading" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--primary); font-weight:bold; font-size:12px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التحميل...</div>'); }
+    
     fetch(`${FIREBASE_URL}/stats/${encodeURIComponent(studentBatch)}.json`).then(r=>r.json()).then(stats=>{ 
-      if (stats) { 
-        let loader = document.getElementById('cohortLoading');
-        if(loader) loader.remove();
-        document.getElementById('cohortChart').style.display = 'block'; 
-        setTimeout(() => { drawChart(stats); }, 500); 
-      } 
+      if (stats) { let loader = document.getElementById('cohortLoading'); if(loader) loader.remove(); document.getElementById('cohortChart').style.display = 'block'; setTimeout(() => { drawChart(stats); }, 500); } 
     }).catch(e=>{});
 
-    // 🎉 إصلاح الاحتفال بالأوائل (اشتغل سواء الترتيب رقم أو كلمة عربي)
-    let rankStr = data.rank ? data.rank.toString() : "";
-    let studentRank = parseInt(rankStr.replace(/[^\d]/g, '')); // استخراج الرقم فقط
+    let rankStr = data.rank ? data.rank.toString() : ""; let studentRank = parseInt(rankStr.replace(/[^\d]/g, ''));
     let isTop = (!isNaN(studentRank) && studentRank <= 15) || rankStr.includes('أول') || rankStr.includes('ثان') || rankStr.includes('ثالث');
-    
-    if(isTop) { 
-      setTimeout(() => { 
-        if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#2563eb', '#10b981'], zIndex: 9999 }); 
-        showToast(`ألف مبروك! أنت من أوائل الدفعة 🏆`, "gold", 6000); 
-      }, 1200); 
-    }
+    if(isTop) { setTimeout(() => { if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#2563eb', '#10b981'], zIndex: 9999 }); showToast(`ألف مبروك! أنت من أوائل الدفعة 🏆`, "gold", 6000); }, 1200); }
   }
 
-  // 📈 2. دالة رسم الإحصائيات 
-  function drawChart(stats) { 
-    if(!window.Chart) return; 
-    if (cohortChartInstance) cohortChartInstance.destroy(); 
-    const canvas = document.getElementById('cohortChart');
-    if(!canvas) return;
-    const ctx = canvas.getContext('2d'); 
-    cohortChartInstance = new Chart(ctx, { type: 'bar', data: { labels: ['+95', '90-94', '85-89', '80-84', '75-79', '70-74', '65-69', '60-64', '<60'], datasets: [{ label: 'الطلاب', data: [stats.p95, stats.p90, stats.p85, stats.p80, stats.p75, stats.p70, stats.p65, stats.p60, stats.pLow], backgroundColor: ['#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#f59e0b', '#ef4444'], borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } } } }); 
-  }
+  function drawChart(stats) { if(!window.Chart) return; if (cohortChartInstance) cohortChartInstance.destroy(); const canvas = document.getElementById('cohortChart'); if(!canvas) return; const ctx = canvas.getContext('2d'); cohortChartInstance = new Chart(ctx, { type: 'bar', data: { labels: ['+95', '90-94', '85-89', '80-84', '75-79', '70-74', '65-69', '60-64', '<60'], datasets: [{ label: 'الطلاب', data: [stats.p95, stats.p90, stats.p85, stats.p80, stats.p75, stats.p70, stats.p65, stats.p60, stats.pLow], backgroundColor: ['#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#f59e0b', '#ef4444'], borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } } } }); }
+  function drawLineChart(semestersData) { if(!window.Chart) return; if (progressLineChartInstance) progressLineChartInstance.destroy(); const canvas = document.getElementById('progressLineChart'); if(!canvas) return; const ctx = canvas.getContext('2d'); let labels = []; let dataPoints = []; semestersData.forEach(sem => { let score = parseFloat(sem.score); if(!isNaN(score)) { labels.push(sem.name.replace('سيمستر','س').trim()); dataPoints.push(score); } }); if(dataPoints.length === 0) return; progressLineChartInstance = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'الدرجة', data: dataPoints, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', borderWidth: 3, pointBackgroundColor: '#f59e0b', pointRadius: 5, fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: false }, x: { grid: { display: false } } } } }); }
 
-  // 📉 3. دالة رسم تطور المستوى
-  function drawLineChart(semestersData) { 
-    if(!window.Chart) return; 
-    if (progressLineChartInstance) progressLineChartInstance.destroy(); 
-    const canvas = document.getElementById('progressLineChart');
-    if(!canvas) return;
-    const ctx = canvas.getContext('2d'); 
-    let labels = []; let dataPoints = []; 
-    semestersData.forEach(sem => { let score = parseFloat(sem.score); if(!isNaN(score)) { labels.push(sem.name.replace('سيمستر','س').trim()); dataPoints.push(score); } }); 
-    if(dataPoints.length === 0) return; 
-    progressLineChartInstance = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'الدرجة', data: dataPoints, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', borderWidth: 3, pointBackgroundColor: '#f59e0b', pointRadius: 5, fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: false }, x: { grid: { display: false } } } } }); 
-  }
-  
-  // 👑 تسجيل دخول الأدمن اللامركزي (مباشرة من فايربيز بسرعة 0.05 ثانية)
   async function adminLogin(e) {
-    if(e) e.preventDefault();
-    let code = document.getElementById('adminCodeInput').value.trim(); let pass = document.getElementById('adminPassword').value.trim();
-    if(!code || !pass) { showToast("برجاء إدخال الكود وكلمة المرور", "error"); return; }
-    
-    showSkeleton();
+    if(e) e.preventDefault(); let code = document.getElementById('adminCodeInput').value.trim(); let pass = document.getElementById('adminPassword').value.trim();
+    if(!code || !pass) { showToast("برجاء إدخال الكود وكلمة المرور", "error"); return; } showSkeleton();
     try {
-      let safeCode = code.replace(/[.#$\[\]]/g, ""); let safePass = pass.replace(/[.#$\[\]]/g, "");
-      // 🔥 بحث في المسار السري للإدارة في فايربيز 
-      let res = await fetch(`${FIREBASE_URL}/secure_admins/${safeCode}_${safePass}.json`);
-      let adminData = await res.json();
-      
+      let safeCode = code.replace(/[.#$\[\]]/g, ""); if(safeCode.toLowerCase() === "admin") safeCode = "admin"; let safePass = pass.replace(/[.#$\[\]]/g, "");
+      let res = await fetch(`${FIREBASE_URL}/secure_admins/${safeCode}_${safePass}.json`); let adminData = await res.json();
       hideSkeleton();
       if(adminData) { 
         activeAdminCode = code; activeAdminPass = pass; 
-        if(adminData.role === "master") { 
-            document.getElementById('masterAdminSection').style.display = 'block'; 
-            let setRes = await fetch(`${FIREBASE_URL}/settings.json`); let settings = await setRes.json();
-            document.getElementById('maintenanceToggle').checked = settings ? settings.maintenance : false; 
-            document.getElementById('adminLogsContainer').innerHTML = '<div style="text-align:center; padding:10px;"><i class="fa-solid fa-circle-notch fa-spin"></i> تحميل...</div>'; 
-        } else { document.getElementById('masterAdminSection').style.display = 'none'; } 
-        document.getElementById('adminBadgeName').innerHTML = adminData.role === "master" ? `<i class="fa-solid fa-crown" style="color:var(--gold)"></i> المدير العام` : "المشرف: " + adminData.name; 
-        document.getElementById('mainHeader').style.display = 'none'; document.getElementById('mainTopBar').style.display = 'none'; document.getElementById('fabContainer').style.display = 'flex'; 
-        switchScreen('screen-admin-dashboard'); 
-        fetchAdminDataFast(); 
-      } else { 
-        renderScreenOnly('screen-admin-login'); showToast("بيانات الإدارة غير صحيحة", "error"); activeAdminCode = ""; activeAdminPass = ""; 
-      }
-    } catch(err) { hideSkeleton(); renderScreenOnly('screen-admin-login'); showToast('حدث خطأ في الاتصال', "error"); }
+        if(adminData.role === "master") { document.getElementById('masterAdminSection').style.display = 'block'; let setRes = await fetch(`${FIREBASE_URL}/settings.json`); let settings = await setRes.json(); document.getElementById('maintenanceToggle').checked = settings ? settings.maintenance : false; document.getElementById('adminLogsContainer').innerHTML = '<div style="text-align:center; padding:10px;"><i class="fa-solid fa-circle-notch fa-spin"></i> تحميل...</div>'; } else { document.getElementById('masterAdminSection').style.display = 'none'; } 
+        document.getElementById('adminBadgeName').innerHTML = adminData.role === "master" ? `<i class="fa-solid fa-crown" style="color:var(--gold)"></i> المدير العام` : "المشرف: " + adminData.name; document.getElementById('mainHeader').style.display = 'none'; document.getElementById('mainTopBar').style.display = 'none'; document.getElementById('fabContainer').style.display = 'flex'; switchScreen('screen-admin-dashboard'); fetchAdminDataFast(); 
+      } else { renderScreenOnly('screen-admin-login'); showToast("بيانات الإدارة غير صحيحة", "error"); activeAdminCode = ""; activeAdminPass = ""; }
+    } catch(err) { hideSkeleton(); renderScreenOnly('screen-admin-login'); showToast('خطأ بالاتصال', "error"); }
   }
 
-  // 🔥 سحب الإحصائيات للأدمن من فايربيز طلقة
-  async function fetchAdminDataFast() {
-    try {
-      let dataRes = await fetch(`${FIREBASE_URL}/admin_data.json`); let adminData = await dataRes.json();
-      let pubRes = await fetch(`${FIREBASE_URL}/public.json`); let batches = await pubRes.json();
-      let total = 0; let reg = 0; for(let b in batches) { for(let n in batches[b]) { total++; if(batches[b][n].registered) reg++; } }
-      
-      document.getElementById('adminStatTotal').innerText = total; document.getElementById('adminStatReg').innerText = reg; 
-      document.getElementById('adminStatRep').innerText = adminData && adminData.reports ? adminData.reports.length : 0;
-      
-      let logsHtml = ""; if(adminData && adminData.logs && adminData.logs.length > 0) { adminData.logs.forEach(l => { logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted); font-size:11px;">${formatDateTime12(l.date, true)}</span></div>`; }); } else { logsHtml = "<div style='text-align:center; font-size:12px;'>لا توجد سجلات</div>"; } document.getElementById('adminLogsContainer').innerHTML = logsHtml;
-      let reportsHtml = ""; if(adminData && adminData.reports && adminData.reports.length > 0) { adminData.reports.forEach(issue => { let isAutoBan = issue.issue.includes("محظور"); let btnAction = isAutoBan ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>` : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`; reportsHtml += `<div class="issue-card" id="issue-card-${issue.rowIdx}"><p><b>👤 ${issue.name}</b> (${issue.nid})</p>${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}<div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:11px; color:var(--text-muted);">${formatDateTime12(issue.date, false)}</span>${btnAction}</div></div>`; }); } else { reportsHtml = `<div style="text-align:center; padding:20px; color:var(--success); font-weight:bold;">لا توجد شكاوى!</div>`; } document.getElementById('adminReportsContainer').innerHTML = reportsHtml;
-    } catch(e) {}
-  }
-
+  async function fetchAdminDataFast() { try { let dataRes = await fetch(`${FIREBASE_URL}/admin_data.json`); let adminData = await dataRes.json(); let pubRes = await fetch(`${FIREBASE_URL}/public.json`); let batches = await pubRes.json(); let total = 0; let reg = 0; for(let b in batches) { for(let n in batches[b]) { total++; if(batches[b][n].registered) reg++; } } document.getElementById('adminStatTotal').innerText = total; document.getElementById('adminStatReg').innerText = reg; document.getElementById('adminStatRep').innerText = adminData && adminData.reports ? adminData.reports.length : 0; let logsHtml = ""; if(adminData && adminData.logs && adminData.logs.length > 0) { adminData.logs.forEach(l => { logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted); font-size:11px;">${formatDateTime12(l.date, true)}</span></div>`; }); } else { logsHtml = "<div style='text-align:center; font-size:12px;'>لا توجد سجلات</div>"; } document.getElementById('adminLogsContainer').innerHTML = logsHtml; let reportsHtml = ""; if(adminData && adminData.reports && adminData.reports.length > 0) { adminData.reports.forEach(issue => { let isAutoBan = issue.issue.includes("محظور"); let btnAction = isAutoBan ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>` : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`; reportsHtml += `<div class="issue-card" id="issue-card-${issue.rowIdx}"><p><b>👤 ${issue.name}</b> (${issue.nid})</p>${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}<div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:11px; color:var(--text-muted);">${formatDateTime12(issue.date, false)}</span>${btnAction}</div></div>`; }); } else { reportsHtml = `<div style="text-align:center; padding:20px; color:var(--success); font-weight:bold;">لا توجد شكاوى!</div>`; } document.getElementById('adminReportsContainer').innerHTML = reportsHtml; } catch(e) {} }
   async function submitIssue() { const name = document.getElementById('supportName').value.trim(); const nid = document.getElementById('supportNid').value.trim(); const phone = document.getElementById('supportPhone').value.trim(); const text = document.getElementById('issueText').value.trim(); if(!name || !nid || !phone || !text) { showToast("يرجى إكمال البيانات", "error"); return; } let btn = document.getElementById('btnSubmitSupport'); btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; btn.disabled = true; try { await apiCall("report_issue", { studentName: name, nationalId: nid, phoneNum: phone, issueText: text }); showToast("تم الإرسال بنجاح.", "success"); closeSupport(); } catch(e) { showToast("حدث خطأ", "error"); } btn.innerHTML = 'إرسال الطلب'; btn.disabled = false; }
   async function toggleMaintenance() { let toggleBtn = document.getElementById('maintenanceToggle'); toggleBtn.disabled = true; try { let res = await apiCall("toggle_maintenance", { adminCode: activeAdminCode, adminPass: activeAdminPass }); if(res.status === "success") { showToast(res.isMaintenance ? "مغلق للصيانة" : "مفتوح للطلبة", "success"); toggleBtn.checked = res.isMaintenance; } else { showToast("خطأ", "error"); toggleBtn.checked = !toggleBtn.checked; } } catch(e) { showToast("خطأ", "error"); toggleBtn.checked = !toggleBtn.checked; } toggleBtn.disabled = false; }
   async function cleanReports() { if(!confirm("مسح جميع الشكاوى؟")) return; try { let res = await apiCall("clean_reports", { adminCode: activeAdminCode, adminPass: activeAdminPass }); if(res.status === "success") { showToast(`تم المسح`, "success"); fetchAdminDataFast(); } else { showToast("خطأ", "error"); } } catch(e) { showToast("خطأ", "error"); } }
