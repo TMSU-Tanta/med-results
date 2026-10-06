@@ -341,10 +341,20 @@
     let interval = setInterval(() => { current += 1; text.innerText = current + "%"; progress.style.background = `conic-gradient(var(--theme-color) ${current * 3.6}deg, var(--border-light) 0)`; if(current >= target) { clearInterval(interval); text.innerText = targetPercentage.toString().includes('%') ? targetPercentage : targetPercentage + '%'; } }, 15); 
   }
 
-  async function apiCall(action, dataObj) {
-    dataObj.action = action; dataObj.apiKey = API_KEY;
-    const response = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(dataObj) });
-    if (!response.ok) throw new Error("Server Timeout"); return await response.json();
+async function apiCall(action, dataObj) {
+    dataObj.action = action; 
+    dataObj.apiKey = API_KEY;
+    
+    // 🔥 إضافة redirect: "follow" هي اللي بتحل مشكلة البلوك
+    const response = await fetch(SCRIPT_URL, { 
+      method: 'POST', 
+      redirect: 'follow', // السطر السحري
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+      body: JSON.stringify(dataObj) 
+    });
+    
+    if (!response.ok) throw new Error("Server Timeout"); 
+    return await response.json();
   }
 
   function showSkeleton() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('skeletonLoader').style.display = 'block'; }
