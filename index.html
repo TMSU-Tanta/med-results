@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- 🔥 روابط المكاتب المحدثة للرسم البياني والاحتفال (بدون مشاكل الكاش) -->
+  <!-- المكتبات السليمة والمستقرة -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   
@@ -79,16 +79,15 @@
     .modal-card { background: var(--card-bg); width: 90%; max-width: 450px; padding: 25px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
     .modal-card h3 { font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
     .modal-card textarea { width: 100%; height: 90px; padding: 15px; border-radius: 12px; border: 1px solid var(--border-light); background: var(--bg-body); font-family: inherit; font-size: 14px; margin-bottom: 15px; resize: none; color: var(--text-dark);}
-    .issue-card { background: var(--bg-body); border: 1px solid var(--danger); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: right; }
+    .issue-card { background: var(--bg-body); border: 1px solid var(--border-light); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: right; }
     .issue-card p { margin-bottom: 5px; font-size: 13px; color: var(--text-dark); }
     .issue-card .issue-text { background: var(--card-bg); padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600; border: 1px solid var(--border-light); margin: 10px 0; }
-    .resolve-btn { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .resolve-btn { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
     #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none;}
     .toast-msg { background: var(--card-bg); color: var(--text-dark); padding: 15px 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-right: 5px solid var(--theme-color); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; animation: slideDown 0.3s ease forwards; pointer-events: auto;}
     .toast-msg.error { border-color: var(--danger); } .toast-msg.success { border-color: var(--success); } .toast-msg.gold { border-color: var(--gold); background: linear-gradient(135deg, #fff, #fffbeb); color: #0f172a !important; }
     @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
-    .admin-reply-banner { margin-top: 10px; padding: 12px; background: linear-gradient(135deg, var(--success), #047857); color: #fff; border-radius: 12px; font-size: 13px; font-weight: 700; line-height: 1.6; display: flex; gap: 10px; align-items: flex-start; }
     .withheld-card { text-align: center; padding: 40px 20px; } .withheld-card i { font-size: 60px; color: var(--danger); margin-bottom: 20px; }
     .withheld-card h2 { font-size: 22px; color: var(--text-dark); margin-bottom: 10px; font-weight: 900;} .withheld-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
     .master-panel { background: rgba(139, 92, 246, 0.05); border: 1px solid var(--master); border-radius: 16px; padding: 20px; margin-top: 25px; }
@@ -143,7 +142,7 @@
     </div>
     <div class="input-group">
       <i class="fa-regular fa-id-card input-icon"></i>
-      <input type="text" id="nationalId" placeholder="الرقم القومي" oninput="validateNID()">
+      <input type="text" id="nationalId" placeholder="الرقم القومي او رقم الجواز" oninput="validateNID()">
     </div>
     <label class="remember-me"><input type="checkbox" id="rememberMe"> تذكر بياناتي</label>
     <button class="btn-main" id="btnStep1" onclick="step1CheckID()" disabled>استمرار</button>
@@ -200,6 +199,9 @@
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:var(--card-bg); padding:10px 15px; border-radius:12px; border:1px solid var(--border-light);">
         <span style="font-size:13px; font-weight:bold;">إغلاق الموقع للصيانة</span><label class="toggle-switch"><input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenance()"><span class="slider"></span></label>
       </div>
+      <button class="btn-main" style="background:var(--success); color:#fff; border:none; padding:12px; font-size:14px; margin-bottom:15px; width:100%; font-weight: bold;" onclick="forceSync()">
+        <i class="fa-solid fa-rotate"></i> مزامنة شاملة (سحب التعديلات من الإكسيل)
+      </button>
       <button class="btn-main" style="background:var(--bg-body); color:var(--text-dark); border:1px solid var(--border-light); padding:10px; font-size:13px; margin-bottom:15px;" onclick="cleanReports()"><i class="fa-solid fa-broom" style="color:var(--master)"></i> أرشفة الشكاوى المحلولة</button>
       <div style="background:var(--card-bg); padding:15px; border-radius:12px; border:1px solid var(--border-light);"><h4 style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">آخر الإجراءات</h4><div id="adminLogsContainer" style="max-height:150px; overflow-y:auto;"></div></div>
     </div>
@@ -208,7 +210,7 @@
       <div class="input-group"><i class="fa-solid fa-id-card input-icon"></i><input type="text" id="adminResetNid" placeholder="الرقم القومي لفك الحظر/المسح"></div>
       <button class="btn-main" style="background:var(--danger)" onclick="adminReset()">تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i></button>
     </div>
-    <div class="sems-wrapper" style="border-top: 1px dashed var(--border-light);"><h3 class="section-head" style="color:var(--danger);"><i class="fa-solid fa-envelope-open-text"></i> تذاكر الدعم والشكاوى</h3><div id="adminReportsContainer"></div></div>
+    <div class="sems-wrapper" style="border-top: 1px dashed var(--border-light);"><h3 class="section-head" style="color:var(--primary);"><i class="fa-solid fa-envelope-open-text"></i> تذاكر الدعم والشكاوى</h3><div id="adminReportsContainer"></div></div>
   </div>
 
   <div id="screen-withheld" class="screen result-container">
@@ -271,7 +273,8 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2qEPiHrS4HSEnnEpQ6wuQsI70809A3SEj7HrXBtw81-ZBkB4Y62mhFX8aOWN38A89/exec"; // حط اللينك الجديد هنا بتاع جوجل سكريبت
+  // 🚨 حط رابط جوجل سكريبت هنا
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSv_Oi4q51y6Fs1IWjS0HAzG0zJuFPzqgSNuyM4q8_ef50V7mxzMZu-4wjUPM1C1Lw/exec"; 
   const FIREBASE_URL = "https://tantamedresults-default-rtdb.firebaseio.com/SystemData"; 
   const API_KEY = "TANTA_MED_2026_SECURE41TMSU";
 
@@ -313,9 +316,13 @@
     try {
       let settingsRes = await fetch(`${FIREBASE_URL}/settings.json`); let settings = await settingsRes.json();
       if(settings && settings.maintenance) { hideSkeleton(); document.getElementById('mainHeader').style.display = 'none'; switchScreen('screen-maintenance'); return; }
-      let publicRes = await fetch(`${FIREBASE_URL}/public/${studentBatch}/${studentID}.json`); currentStudentPublic = await publicRes.json(); hideSkeleton();
+      
+      let publicRes = await fetch(`${FIREBASE_URL}/public/${encodeURIComponent(studentBatch)}/${studentID}.json`); 
+      currentStudentPublic = await publicRes.json(); hideSkeleton();
+      
       if(!currentStudentPublic) { renderScreenOnly('screen-id'); showToast('الرقم القومي غير مسجل بالفرقة.', "error"); return; }
       if(currentStudentPublic.withheld) { document.getElementById('withheldName').innerText = currentStudentPublic.name; document.getElementById('mainHeader').style.display = 'none'; document.getElementById('mainTopBar').style.display = 'flex'; switchScreen('screen-withheld'); return; }
+      
       if(!currentStudentPublic.registered) { authMode = 'register'; document.getElementById('authTitle').innerText = "إعداد كلمة المرور"; document.getElementById('authInfo').innerHTML = `أهلاً <b class="sensitive-data">${currentStudentPublic.name}</b><br>يرجى إعداد كلمة مرور.`; document.getElementById('confirmPassGroup').style.display = 'block'; switchScreen('screen-auth'); } else { authMode = 'login'; document.getElementById('authTitle').innerText = "تسجيل الدخول"; document.getElementById('authInfo').innerHTML = `مرحباً <b class="sensitive-data">${currentStudentPublic.name}</b>`; document.getElementById('confirmPassGroup').style.display = 'none'; switchScreen('screen-auth'); }
     } catch(err) { hideSkeleton(); renderScreenOnly('screen-id'); showToast('حدث خطأ في الاتصال.', "error"); }
   }
@@ -328,19 +335,23 @@
     if (authMode === 'login') {
        let safePass = pass.replace(/[.#$\[\]]/g, "");
        try {
-           let res = await fetch(`${FIREBASE_URL}/secure/${studentBatch}/${studentID}_${safePass}.json`); let secureData = await res.json();
+           let res = await fetch(`${FIREBASE_URL}/secure/${encodeURIComponent(studentBatch)}/${studentID}_${safePass}.json`); let secureData = await res.json();
            if(secureData) { handleFirebaseResult(secureData); } else { hideSkeleton(); renderScreenOnly('screen-auth'); showToast(`كلمة مرور خاطئة`, "error"); }
        } catch(e) { hideSkeleton(); renderScreenOnly('screen-auth'); showToast(`خطأ في الاتصال`, "error"); }
     } else {
        try {
            const res = await apiCall("register", { nationalId: studentID, password: pass, batch: studentBatch });
            if(res.status === "error") { hideSkeleton(); renderScreenOnly('screen-auth'); showToast(res.message, "error"); }
-           else { let safePass = pass.replace(/[.#$\[\]]/g, ""); let newRes = await fetch(`${FIREBASE_URL}/secure/${studentBatch}/${studentID}_${safePass}.json`); let newData = await newRes.json(); if(newData) handleFirebaseResult(newData); }
+           else { 
+               let safePass = pass.replace(/[.#$\[\]]/g, ""); 
+               let newRes = await fetch(`${FIREBASE_URL}/secure/${encodeURIComponent(studentBatch)}/${studentID}_${safePass}.json`); 
+               let newData = await newRes.json(); 
+               if(newData) handleFirebaseResult(newData); 
+           }
        } catch(err) { hideSkeleton(); renderScreenOnly('screen-auth'); showToast('حدث خطأ بالاتصال', "error"); }
     }
   }
 
-  // 🔥 دالة العرض الخالية من الأخطاء والرسومات اللي بتترسم في وقتها
   function handleFirebaseResult(data) {
     hideSkeleton(); document.getElementById('resName').innerText = data.name || '-'; document.getElementById('resNid').innerText = studentID; document.getElementById('resBatch').innerText = studentBatch; document.getElementById('resRank').innerText = data.rank || '-'; let totalHtml = data.total || '-'; document.getElementById('resTotal').innerHTML = totalHtml; finalPctValue = data.percentage || '0'; applyDynamicTheme(finalPctValue); setTimeout(() => { animateCircularProgress(finalPctValue); }, 300);
     
@@ -364,7 +375,7 @@
     }).catch(e=>{});
 
     let rankStr = data.rank ? data.rank.toString() : ""; let studentRank = parseInt(rankStr.replace(/[^\d]/g, ''));
-    let isTop = (!isNaN(studentRank) && studentRank <= 15) || rankStr.includes('أول') || rankStr.includes('ثان') || rankStr.includes('ثالث');
+    let isTop = (!isNaN(studentRank) && studentRank <= 15) || rankStr.includes('أول') || rankStr.includes('ثان') || rankStr.includes('ثالث') || rankStr.includes('عاشر');
     if(isTop) { setTimeout(() => { if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#2563eb', '#10b981'], zIndex: 9999 }); showToast(`ألف مبروك! أنت من أوائل الدفعة 🏆`, "gold", 6000); }, 1200); }
   }
 
@@ -386,7 +397,22 @@
     } catch(err) { hideSkeleton(); renderScreenOnly('screen-admin-login'); showToast('خطأ بالاتصال', "error"); }
   }
 
-  async function fetchAdminDataFast() { try { let dataRes = await fetch(`${FIREBASE_URL}/admin_data.json`); let adminData = await dataRes.json(); let pubRes = await fetch(`${FIREBASE_URL}/public.json`); let batches = await pubRes.json(); let total = 0; let reg = 0; for(let b in batches) { for(let n in batches[b]) { total++; if(batches[b][n].registered) reg++; } } document.getElementById('adminStatTotal').innerText = total; document.getElementById('adminStatReg').innerText = reg; document.getElementById('adminStatRep').innerText = adminData && adminData.reports ? adminData.reports.length : 0; let logsHtml = ""; if(adminData && adminData.logs && adminData.logs.length > 0) { adminData.logs.forEach(l => { logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted); font-size:11px;">${formatDateTime12(l.date, true)}</span></div>`; }); } else { logsHtml = "<div style='text-align:center; font-size:12px;'>لا توجد سجلات</div>"; } document.getElementById('adminLogsContainer').innerHTML = logsHtml; let reportsHtml = ""; if(adminData && adminData.reports && adminData.reports.length > 0) { adminData.reports.forEach(issue => { let isAutoBan = issue.issue.includes("محظور"); let btnAction = isAutoBan ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>` : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`; reportsHtml += `<div class="issue-card" id="issue-card-${issue.rowIdx}"><p><b>👤 ${issue.name}</b> (${issue.nid})</p>${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}<div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:11px; color:var(--text-muted);">${formatDateTime12(issue.date, false)}</span>${btnAction}</div></div>`; }); } else { reportsHtml = `<div style="text-align:center; padding:20px; color:var(--success); font-weight:bold;">لا توجد شكاوى!</div>`; } document.getElementById('adminReportsContainer').innerHTML = reportsHtml; } catch(e) {} }
+  // سحب الشكاوى والسجلات من السيرفر مش من فايربيز (للأمان التام)
+  async function fetchAdminDataFast() { 
+    try { 
+      let res = await apiCall("admin_get_data", { adminCode: activeAdminCode, adminPass: activeAdminPass });
+      if(res.status === "success") {
+          document.getElementById('adminStatTotal').innerText = res.stats.total; 
+          document.getElementById('adminStatReg').innerText = res.stats.registered; 
+          document.getElementById('adminStatRep').innerText = res.stats.reports; 
+          
+          let logsHtml = ""; if(res.adminLogs && res.adminLogs.length > 0) { res.adminLogs.forEach(l => { logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted); font-size:11px;">${formatDateTime12(l.date, true)}</span></div>`; }); } else { logsHtml = "<div style='text-align:center; font-size:12px;'>لا توجد سجلات</div>"; } document.getElementById('adminLogsContainer').innerHTML = logsHtml; 
+          let reportsHtml = ""; if(res.issues && res.issues.length > 0) { res.issues.forEach(issue => { let isAutoBan = issue.issue.includes("محظور"); let btnAction = isAutoBan ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>` : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`; reportsHtml += `<div class="issue-card" id="issue-card-${issue.rowIdx}"><p><b>👤 ${issue.name}</b> (${issue.nid})</p>${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}<div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:11px; color:var(--text-muted);">${formatDateTime12(issue.date, false)}</span>${btnAction}</div></div>`; }); } else { reportsHtml = `<div style="text-align:center; padding:20px; color:var(--success); font-weight:bold;">لا توجد شكاوى!</div>`; } document.getElementById('adminReportsContainer').innerHTML = reportsHtml; 
+      }
+    } catch(e) {} 
+  }
+
+  async function forceSync() { let btn = document.querySelector('button[onclick="forceSync()"]'); let originalText = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري سحب البيانات والرفع...'; btn.disabled = true; try { let res = await apiCall("force_sync", { adminCode: activeAdminCode, adminPass: activeAdminPass }); if(res.status === "success") { showToast("تم مزامنة ورفع القاعدة بالكامل بنجاح!", "success"); fetchAdminDataFast(); } else { showToast("خطأ: " + res.message, "error"); } } catch(e) { showToast("خطأ في الاتصال بالسيرفر", "error"); } btn.innerHTML = originalText; btn.disabled = false; }
   async function submitIssue() { const name = document.getElementById('supportName').value.trim(); const nid = document.getElementById('supportNid').value.trim(); const phone = document.getElementById('supportPhone').value.trim(); const text = document.getElementById('issueText').value.trim(); if(!name || !nid || !phone || !text) { showToast("يرجى إكمال البيانات", "error"); return; } let btn = document.getElementById('btnSubmitSupport'); btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; btn.disabled = true; try { await apiCall("report_issue", { studentName: name, nationalId: nid, phoneNum: phone, issueText: text }); showToast("تم الإرسال بنجاح.", "success"); closeSupport(); } catch(e) { showToast("حدث خطأ", "error"); } btn.innerHTML = 'إرسال الطلب'; btn.disabled = false; }
   async function toggleMaintenance() { let toggleBtn = document.getElementById('maintenanceToggle'); toggleBtn.disabled = true; try { let res = await apiCall("toggle_maintenance", { adminCode: activeAdminCode, adminPass: activeAdminPass }); if(res.status === "success") { showToast(res.isMaintenance ? "مغلق للصيانة" : "مفتوح للطلبة", "success"); toggleBtn.checked = res.isMaintenance; } else { showToast("خطأ", "error"); toggleBtn.checked = !toggleBtn.checked; } } catch(e) { showToast("خطأ", "error"); toggleBtn.checked = !toggleBtn.checked; } toggleBtn.disabled = false; }
   async function cleanReports() { if(!confirm("مسح جميع الشكاوى؟")) return; try { let res = await apiCall("clean_reports", { adminCode: activeAdminCode, adminPass: activeAdminPass }); if(res.status === "success") { showToast(`تم المسح`, "success"); fetchAdminDataFast(); } else { showToast("خطأ", "error"); } } catch(e) { showToast("خطأ", "error"); } }
