@@ -398,16 +398,18 @@
 </div>
 
 <script>
+ // ==========================================
+  // 👇 كود الجافاسكريبت الجديد (الهجين) - انسخه مكان القديم
   // ==========================================
-  // 👇 حط لينك الـ Web App بتاعك هنا
-  // ==========================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4tg8PgNU1BY-fnw75KJtXnMsoytSLSDuRdFkolLIU43lUj-G5N-FC_0dxsYMyhkvl/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyalLD0pMhfefSJPOz-EsPw-ij5aT90ibfQCeJVAYD7sYPXMghL458ZPLjB3MsKsYEs/exec"; // حط لينك جوجل سكريبت هنا
+  const FIREBASE_URL = "https://tantamedresults-default-rtdb.firebaseio.com/SystemData"; // سيرفر السرعة
   const API_KEY = "TANTA_MED_2026_SECURE41TMSU";
 
   let studentID = ""; let studentBatch = ""; let authMode = ""; 
   let activeAdminCode = ""; let activeAdminPass = ""; 
   let cohortChartInstance = null; let progressLineChartInstance = null; 
-  let finalPctValue = 0; let chartDataCache = null; let lineChartDataCache = null;
+  let finalPctValue = 0; 
+  let currentStudentData = null; // ذاكرة مؤقتة لحظية للمتصفح
 
   function formatDateTime12(dateStr, hideYear = false) {
     if (!dateStr) return "";
@@ -495,7 +497,7 @@
     document.getElementById('confirmPassword').value = ''; 
     document.getElementById('adminPassword').value = '';
     document.getElementById('adminCodeInput').value = '';
-    activeAdminCode = ""; activeAdminPass = "";
+    activeAdminCode = ""; activeAdminPass = ""; currentStudentData = null;
     validateNID();
   }
 
@@ -509,7 +511,6 @@
     let currentNidForReport = studentID || document.getElementById('nationalId').value.trim();
     if(currentNidForReport && currentNidForReport.toLowerCase() !== "admin") { document.getElementById('supportNid').value = currentNidForReport; }
   }
-  
   function closeSupport() { 
     document.getElementById('supportModal').style.display = 'none'; 
     document.getElementById('supportName').value = ""; document.getElementById('supportNid').value = "";
@@ -557,22 +558,15 @@
     }, 15); 
   }
 
-  async function apiCall(action, dataObj, retries = 4) {
+  async function apiCall(action, dataObj) {
     dataObj.action = action; dataObj.apiKey = API_KEY;
-    for (let i = 0; i < retries; i++) {
-      try {
-        const response = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(dataObj)
-        });
-        if (!response.ok) throw new Error("Server Timeout");
-        return await response.json();
-      } catch (err) {
-        if (i === retries - 1) throw err;
-        await new Promise(res => setTimeout(res, 1500 * (i + 1))); 
-      }
-    }
+    const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(dataObj)
+    });
+    if (!response.ok) throw new Error("Server Timeout");
+    return await response.json();
   }
 
   function showSkeleton() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('skeletonLoader').style.display = 'block'; }
@@ -592,12 +586,6 @@
     hideSkeleton();
     let target = document.getElementById(screenId);
     if(target) target.classList.add('active'); else document.getElementById('screen-id').classList.add('active');
-    
-    // 🔥 تأخير رسم المخططات البيانية عشان الموبايل ميوقفش الشاشة (Paint Yielding)
-    if(screenId === 'screen-result') { 
-        if(chartDataCache) setTimeout(() => { drawChart(chartDataCache); }, 400); 
-        if(lineChartDataCache) setTimeout(() => { drawLineChart(lineChartDataCache); }, 400);
-    }
   }
 
   function togglePass(iconElement, inputId) {
@@ -606,52 +594,58 @@
     else { input.type = "password"; iconElement.classList.replace("fa-eye-slash", "fa-eye"); iconElement.style.color="var(--text-muted)";}
   }
 
+  // 🚀 قراءة البيانات السريعة جداً من فايربيز بدلاً من جوجل سكريبت
   async function step1CheckID() {
     let inputVal = document.getElementById('nationalId').value.trim();
     if(inputVal.length < 3) return;
-    
     if(inputVal.toLowerCase() === "admin") { switchScreen('screen-admin-login'); return; }
 
     studentID = inputVal;
     studentBatch = document.getElementById('batchSelect').value;
     
     if(document.getElementById('rememberMe').checked) { 
-        localStorage.setItem('savedNID', studentID); 
-        localStorage.setItem('savedBatch', studentBatch);
+        localStorage.setItem('savedNID', studentID); localStorage.setItem('savedBatch', studentBatch);
     } else { 
-        localStorage.removeItem('savedNID'); 
-        localStorage.removeItem('savedBatch');
+        localStorage.removeItem('savedNID'); localStorage.removeItem('savedBatch');
     }
 
     showSkeleton();
     try {
-      const res = await apiCall("check_status", { nationalId: studentID, batch: studentBatch });
-      hideSkeleton();
-      
-      if(res.status === "maintenance") {
-         document.getElementById('mainHeader').style.display = 'none'; 
-         switchScreen('screen-maintenance'); return;
+      // 1. فحص وضع الصيانة من فايربيز (0.01 ثانية)
+      let settingsRes = await fetch(`${FIREBASE_URL}/settings.json`);
+      let settings = await settingsRes.json();
+      if(settings && settings.maintenance) {
+          hideSkeleton(); document.getElementById('mainHeader').style.display = 'none'; switchScreen('screen-maintenance'); return;
       }
-      else if(res.status === "locked") { renderScreenOnly('screen-id'); showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error"); }
-      else if(res.status === "not_found") { renderScreenOnly('screen-id'); showToast('الرقم القومي غير مسجل بالفرقة المحددة.', "error"); }
-      else if(res.status === "error") { renderScreenOnly('screen-id'); showToast(res.message || 'حدث خطأ في جلب البيانات', "error"); }
-      else {
-        let replyHtml = "";
-        if(res.adminReply && res.adminReply !== "") {
-            replyHtml = `<div class="admin-reply-banner" style="margin: 10px 0; font-size:12px;"><i class="fa-solid fa-bell"></i> <div><b>رد الدعم الفني:</b><br>${res.adminReply}</div></div>`;
-        }
 
-        if(res.status === "new_user") {
-          authMode = 'register'; document.getElementById('authTitle').innerText = "إعداد كلمة المرور";
-          document.getElementById('authInfo').innerHTML = `أهلاً <b class="sensitive-data">${res.name}</b>${replyHtml}<br>يرجى إعداد كلمة مرور خاصة بك (لا تقل عن 4 أرقام/أحرف).`;
-          document.getElementById('confirmPassGroup').style.display = 'block'; switchScreen('screen-auth'); 
-        } else {
-          authMode = 'login'; document.getElementById('authTitle').innerText = "تسجيل الدخول";
-          document.getElementById('authInfo').innerHTML = `مرحباً <b class="sensitive-data">${res.name}</b>${replyHtml}`;
-          document.getElementById('confirmPassGroup').style.display = 'none'; switchScreen('screen-auth'); 
-        }
+      // 2. فحص حالة الطالب من فايربيز (0.05 ثانية)
+      let studentRes = await fetch(`${FIREBASE_URL}/batches/${studentBatch}/${studentID}.json`);
+      currentStudentData = await studentRes.json();
+
+      hideSkeleton();
+      if(!currentStudentData) {
+          renderScreenOnly('screen-id'); showToast('الرقم القومي غير مسجل بالفرقة المحددة.', "error"); return;
       }
-    } catch(err) { hideSkeleton(); renderScreenOnly('screen-id'); showToast('حدث خطأ في النظام: برجاء المحاولة لاحقاً', "error"); }
+
+      // الحساب محجوب بالكامل؟
+      if(currentStudentData.withheld) {
+         document.getElementById('withheldName').innerText = currentStudentData.name;
+         document.getElementById('mainHeader').style.display = 'none'; 
+         document.getElementById('mainTopBar').style.display = 'flex'; 
+         switchScreen('screen-withheld'); return;
+      }
+
+      // فحص الباسورد
+      if(!currentStudentData.password || currentStudentData.password.toString().trim() === "") {
+          authMode = 'register'; document.getElementById('authTitle').innerText = "إعداد كلمة المرور";
+          document.getElementById('authInfo').innerHTML = `أهلاً <b class="sensitive-data">${currentStudentData.name}</b><br>يرجى إعداد كلمة مرور خاصة بك (لا تقل عن 4 أرقام/أحرف).`;
+          document.getElementById('confirmPassGroup').style.display = 'block'; switchScreen('screen-auth'); 
+      } else {
+          authMode = 'login'; document.getElementById('authTitle').innerText = "تسجيل الدخول";
+          document.getElementById('authInfo').innerHTML = `مرحباً <b class="sensitive-data">${currentStudentData.name}</b>`;
+          document.getElementById('confirmPassGroup').style.display = 'none'; switchScreen('screen-auth'); 
+      }
+    } catch(err) { hideSkeleton(); renderScreenOnly('screen-id'); showToast('حدث خطأ في الاتصال، تأكد من الإنترنت.', "error"); }
   }
 
   async function step2Auth() {
@@ -661,63 +655,110 @@
     if(authMode === 'register' && pass !== document.getElementById('confirmPassword').value.trim()) { showToast('كلمتا المرور غير متطابقتين.', "error"); return; }
     
     showSkeleton();
-    try {
-      const action = authMode === 'register' ? "register" : "login";
-      const res = await apiCall(action, { nationalId: studentID, password: pass, batch: studentBatch });
-      hideSkeleton();
-      
-      if(res.status === "maintenance") { document.getElementById('mainHeader').style.display = 'none'; switchScreen('screen-maintenance');}
-      else if(res.status === "locked") { renderScreenOnly('screen-id'); showToast(`حساب محظور. جرب بعد ${res.remaining} دقيقة.`, "error"); }
-      else if(res.status === "wrong_password") { renderScreenOnly('screen-auth'); showToast(`كلمة مرور خاطئة (المحاولات المتبقية: ${res.attemptsLeft})`, "error"); }
-      else if(res.status === "withheld") {
-         document.getElementById('withheldName').innerText = res.name;
-         document.getElementById('mainHeader').style.display = 'none'; 
-         document.getElementById('mainTopBar').style.display = 'flex'; 
-         switchScreen('screen-withheld');
-      }
-      else if(res.status === "error") { renderScreenOnly('screen-auth'); showToast(res.message || 'حدث خطأ غير متوقع.', "error"); }
-      else handleResult(res);
-    } catch(err) { hideSkeleton(); renderScreenOnly('screen-auth'); showToast('حدث خطأ في النظام: برجاء المحاولة لاحقاً', "error"); }
+
+    // 🚀 التحقق من الدخول بلمح البصر (محلياً من الداتا اللي اتسحبت)
+    if (authMode === 'login') {
+        if (currentStudentData.password.toString() === pass) {
+            handleFirebaseResult(currentStudentData);
+        } else {
+            hideSkeleton(); showToast(`كلمة مرور خاطئة`, "error");
+        }
+    } else {
+        // إنشاء الباسورد بيتبعت لجوجل سكريبت عشان يتأكد إنه مش متكرر ويتسجل صح
+        try {
+            const res = await apiCall("register", { nationalId: studentID, password: pass, batch: studentBatch });
+            if(res.status === "error") { hideSkeleton(); showToast(res.message, "error"); }
+            else { 
+               currentStudentData.password = pass; // تحديث محلي
+               handleFirebaseResult(currentStudentData); // عرض النتيجة
+            }
+        } catch(err) { hideSkeleton(); showToast('حدث خطأ أثناء التسجيل.', "error"); }
+    }
   }
 
-  async function adminLogin() {
-    let code = document.getElementById('adminCodeInput').value.trim();
-    let pass = document.getElementById('adminPassword').value.trim();
-    if(!code || !pass) { showToast("برجاء إدخال الكود وكلمة المرور", "error"); return; }
+  // 🔥 دالة سحب إحصائيات الدفعة في الخلفية من فايربيز بدون تأخير
+  async function fetchCohortStatsBackground() {
+    try {
+      let res = await fetch(`${FIREBASE_URL}/stats/${studentBatch}.json`);
+      let stats = await res.json();
+      if (stats) {
+        let loadingEl = document.getElementById('cohortLoading');
+        if(loadingEl) loadingEl.remove();
+        document.getElementById('cohortChart').style.display = 'block';
+        setTimeout(() => { drawChart(stats); }, 200);
+      }
+    } catch(e) {}
+  }
 
+  function handleFirebaseResult(data) {
+    hideSkeleton();
+    document.getElementById('resName').innerText = data.name || '-';
+    document.getElementById('resNid').innerText = studentID;
+    document.getElementById('resBatch').innerText = studentBatch;
+    document.getElementById('resRank').innerText = data.rank || '-';
+
+    let totalHtml = data.total || '-';
+    // في فايربيز المجموع بيتسيف كرقم مباشر مفيش داعي لفصله لو مش متاح 
+    document.getElementById('resTotal').innerHTML = totalHtml;
+    
+    finalPctValue = data.percentage || '0';
+    applyDynamicTheme(finalPctValue); 
+    setTimeout(() => { animateCircularProgress(finalPctValue); }, 300);
+
+    const container = document.getElementById('semestersContainer');
+    container.innerHTML = ''; 
+    if (data.semesters && data.semesters.length > 0) {
+      data.semesters.forEach(sem => {
+        let scoreHtml = sem.score;
+        if (sem.max && sem.score !== '-') { scoreHtml = `${sem.score} <span style="font-size:14px; opacity:0.6">/ ${sem.max}</span>`; }
+        container.innerHTML += `<div class="sem-item"><div class="sem-header"><div class="sem-info"><div class="sem-icon"><i class="fa-solid fa-book"></i></div><span class="sem-name">${sem.name}</span></div><span class="sem-score" dir="ltr" style="display:inline-block;">${scoreHtml}</span></div></div>`;
+      });
+      setTimeout(() => { drawLineChart(data.semesters); }, 300);
+    }
+
+    document.getElementById('cohortChart').style.display = 'none';
+    const cohortContainer = document.getElementById('cohortChart').parentElement;
+    if(!document.getElementById('cohortLoading')) {
+        cohortContainer.innerHTML += '<div id="cohortLoading" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--primary); font-weight:bold; font-size:12px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل الإحصائيات...</div>';
+    }
+    fetchCohortStatsBackground();
+
+    document.getElementById('mainHeader').style.display = 'none'; 
+    document.getElementById('mainTopBar').style.display = 'flex'; 
+    document.getElementById('privacyBtn').style.display = 'flex';
+    document.getElementById('fabContainer').style.display = 'flex'; 
+    switchScreen('screen-result'); 
+
+    if(data.rank && parseInt(data.rank) <= 10) {
+        setTimeout(() => {
+            if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#2563eb', '#10b981'] });
+            showToast(`ألف مبروك! أنت من أوائل الدفعة (المركز الـ ${data.rank}) 🏆`, "gold", 6000);
+        }, 800);
+    }
+  }
+
+  // ==========================================
+  // 👇 دوال تحكم الأدمن (بتتصل بجوجل سكريبت زي ما هي لضمان الأمان)
+  // ==========================================
+  async function adminLogin() {
+    let code = document.getElementById('adminCodeInput').value.trim(); let pass = document.getElementById('adminPassword').value.trim();
+    if(!code || !pass) { showToast("برجاء إدخال الكود وكلمة المرور", "error"); return; }
     showSkeleton();
     try {
       let res = await apiCall("admin_login", { adminCode: code, adminPass: pass });
       hideSkeleton();
       if(res.status === "success") {
         activeAdminCode = code; activeAdminPass = pass;
-        
         if(res.role === "master") {
             document.getElementById('masterAdminSection').style.display = 'block';
             document.getElementById('maintenanceToggle').checked = res.isMaintenance;
             document.getElementById('adminLogsContainer').innerHTML = '<div style="text-align:center; padding:10px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري سحب السجلات...</div>';
         } else { document.getElementById('masterAdminSection').style.display = 'none'; }
-
         document.getElementById('adminBadgeName').innerHTML = res.role === "master" ? `<i class="fa-solid fa-crown" style="color:var(--gold)"></i> المدير العام` : "المشرف: " + res.adminName;
-        
-        document.getElementById('adminStatTotal').innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:16px; color:var(--text-muted)"></i>';
-        document.getElementById('adminStatReg').innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:16px; color:var(--text-muted)"></i>';
-        document.getElementById('adminStatRep').innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:16px; color:var(--text-muted)"></i>';
-        document.getElementById('adminReportsContainer').innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري سحب الشكاوى...</div>';
-
-        document.getElementById('mainHeader').style.display = 'none';
-        document.getElementById('mainTopBar').style.display = 'none';
-        document.getElementById('fabContainer').style.display = 'flex';
-        switchScreen('screen-admin-dashboard');
-
-        fetchAdminData();
-
+        document.getElementById('mainHeader').style.display = 'none'; document.getElementById('mainTopBar').style.display = 'none'; document.getElementById('fabContainer').style.display = 'flex';
+        switchScreen('screen-admin-dashboard'); fetchAdminData();
       } else { hideSkeleton(); renderScreenOnly('screen-admin-login'); showToast(res.message, "error"); activeAdminCode = ""; activeAdminPass = ""; }
-    } catch(err) { 
-      hideSkeleton(); 
-      renderScreenOnly('screen-admin-login'); 
-      showToast('يجب رفع تحديث الواجهة (HTML) ليتطابق مع السيرفر!', "error"); 
-    }
+    } catch(err) { hideSkeleton(); renderScreenOnly('screen-admin-login'); showToast('حدث خطأ', "error"); }
   }
 
   async function fetchAdminData() {
@@ -727,36 +768,17 @@
           document.getElementById('adminStatTotal').innerText = res.stats.total;
           document.getElementById('adminStatReg').innerText = res.stats.registered;
           document.getElementById('adminStatRep').innerText = res.stats.reports;
-
           let logsHtml = "";
           if(res.adminLogs && res.adminLogs.length > 0) {
-              res.adminLogs.forEach(l => { 
-                  let formattedDate = formatDateTime12(l.date, true);
-                  logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted); font-size:11px;">${formattedDate}</span></div>`; 
-              });
+              res.adminLogs.forEach(l => { logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted); font-size:11px;">${formatDateTime12(l.date, true)}</span></div>`; });
           } else { logsHtml = "<div style='text-align:center; font-size:12px; color:var(--text-muted);'>لا توجد سجلات حديثة</div>"; }
           document.getElementById('adminLogsContainer').innerHTML = logsHtml;
-          
           let reportsHtml = "";
           if(res.issues && res.issues.length > 0) {
             res.issues.forEach(issue => {
               let isAutoBan = issue.issue.includes("محظور أمنياً");
-              let btnAction = isAutoBan 
-                ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>`
-                : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`;
-              
-              let formattedDate = formatDateTime12(issue.date, false);
-
-              reportsHtml += `
-                <div class="issue-card" id="issue-card-${issue.rowIdx}">
-                  <p><b>👤 ${issue.name}</b> (${issue.nid})</p>
-                  ${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}
-                  <div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div>
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                    <span style="font-size:11px; color:var(--text-muted);">${formattedDate}</span>
-                    ${btnAction}
-                  </div>
-                </div>`;
+              let btnAction = isAutoBan ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>` : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`;
+              reportsHtml += `<div class="issue-card" id="issue-card-${issue.rowIdx}"><p><b>👤 ${issue.name}</b> (${issue.nid})</p>${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}<div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;"><span style="font-size:11px; color:var(--text-muted);">${formatDateTime12(issue.date, false)}</span>${btnAction}</div></div>`;
             });
           } else { reportsHtml = `<div style="text-align:center; padding:20px; color:var(--success); font-weight:bold;"><i class="fa-solid fa-face-smile"></i> لا توجد شكاوى معلقة!</div>`; }
           document.getElementById('adminReportsContainer').innerHTML = reportsHtml;
@@ -765,73 +787,64 @@
   }
 
   async function toggleMaintenance() {
-    let toggleBtn = document.getElementById('maintenanceToggle');
-    toggleBtn.disabled = true;
+    let toggleBtn = document.getElementById('maintenanceToggle'); toggleBtn.disabled = true;
     try {
       let res = await apiCall("toggle_maintenance", { adminCode: activeAdminCode, adminPass: activeAdminPass });
-      if(res.status === "success") { 
-         showToast(res.isMaintenance ? "تم إغلاق الموقع للصيانة" : "تم فتح الموقع للطلبة", "success"); 
-         toggleBtn.checked = res.isMaintenance;
-      } else { 
-         showToast("خطأ في الصلاحيات", "error"); 
-         toggleBtn.checked = !toggleBtn.checked;
-      }
-    } catch(e) { 
-      showToast("خطأ اتصال", "error"); 
-      toggleBtn.checked = !toggleBtn.checked;
-    }
+      if(res.status === "success") { showToast(res.isMaintenance ? "تم إغلاق الموقع للصيانة" : "تم فتح الموقع للطلبة", "success"); toggleBtn.checked = res.isMaintenance; } 
+      else { showToast("خطأ", "error"); toggleBtn.checked = !toggleBtn.checked; }
+    } catch(e) { showToast("خطأ اتصال", "error"); toggleBtn.checked = !toggleBtn.checked; }
     toggleBtn.disabled = false;
   }
 
   async function cleanReports() {
-    if(!confirm("هل أنت متأكد من مسح جميع الشكاوى التي تم حلها نهائياً لتخفيف النظام؟")) return;
+    if(!confirm("هل أنت متأكد من مسح جميع الشكاوى المحلولة؟")) return;
     try {
       let res = await apiCall("clean_reports", { adminCode: activeAdminCode, adminPass: activeAdminPass });
-      if(res.status === "success") { showToast(`تم مسح ${res.deleted} شكوى محلولة بنجاح.`, "success"); }
-      else { showToast("خطأ في العملية", "error"); }
+      if(res.status === "success") { showToast(`تم مسح ${res.deleted} شكوى.`, "success"); } else { showToast("خطأ", "error"); }
     } catch(e) { showToast("خطأ اتصال", "error"); }
   }
 
-  async function adminQuickSearch() {
-    let sNid = document.getElementById('adminSearchNid').value.trim();
-    if(!sNid) return;
-    let resBox = document.getElementById('adminSearchResult');
-    resBox.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري البحث...';
-    resBox.style.display = 'block';
-
+  async function forceSync() {
+    let btn = document.querySelector('button[onclick="forceSync()"]');
+    if(btn) { btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري المسح والتحديث...'; btn.disabled = true; }
     try {
-      let res = await apiCall("admin_search", { searchNid: sNid, adminCode: activeAdminCode, adminPass: activeAdminPass });
-      if(res.status === "success") {
-        resBox.innerHTML = `<b>👤 الاسم:</b> ${res.studentData.name}<br><b>📚 الدفعة:</b> ${res.studentData.batch}<br><b>🔑 حالة الحساب:</b> ${res.studentData.hasPassword}<br><b>🚫 الحظر:</b> ${res.studentData.locked}`;
-      } else { resBox.innerHTML = `<span style="color:var(--danger)">${res.message}</span>`; }
+      let res = await apiCall("force_sync", { adminCode: activeAdminCode, adminPass: activeAdminPass });
+      if(res.status === "success") { showToast(res.message, "success"); } else { showToast("حدث خطأ", "error"); }
+    } catch(e) { showToast("خطأ اتصال", "error"); }
+    if(btn) { btn.innerHTML = '<i class="fa-solid fa-rotate"></i> تحديث إحصائيات الدفعات فوراً'; btn.disabled = false; }
+  }
+
+  async function adminQuickSearch() {
+    let sNid = document.getElementById('adminSearchNid').value.trim(); if(!sNid) return;
+    let resBox = document.getElementById('adminSearchResult'); resBox.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري البحث...'; resBox.style.display = 'block';
+    try {
+      let res = await fetch(`${FIREBASE_URL}/batches.json`);
+      let allBatches = await res.json();
+      let found = false;
+      for(let batchName in allBatches) {
+          if(allBatches[batchName][sNid]) {
+             let stu = allBatches[batchName][sNid];
+             resBox.innerHTML = `<b>👤 الاسم:</b> ${stu.name}<br><b>📚 الدفعة:</b> ${batchName}<br><b>🔑 حالة الحساب:</b> ${stu.password ? 'نعم (حساب مفعل)' : 'غير مسجل بعد'}`;
+             found = true; break;
+          }
+      }
+      if(!found) resBox.innerHTML = `<span style="color:var(--danger)">الطالب غير موجود بالنظام السريع</span>`;
     } catch(e) { resBox.innerHTML = `<span style="color:var(--danger)">خطأ اتصال</span>`; }
   }
 
-  function openResolveModal(rowIdx) {
-    document.getElementById('resolveTargetRow').value = rowIdx;
-    document.getElementById('resolvePreset').value = "";
-    document.getElementById('resolveCustomText').value = "";
-    document.getElementById('resolveModal').style.display = 'flex';
-  }
+  function openResolveModal(rowIdx) { document.getElementById('resolveTargetRow').value = rowIdx; document.getElementById('resolvePreset').value = ""; document.getElementById('resolveCustomText').value = ""; document.getElementById('resolveModal').style.display = 'flex'; }
   function closeResolveModal() { document.getElementById('resolveModal').style.display = 'none'; }
 
   async function confirmResolve() {
-    let rowIdx = document.getElementById('resolveTargetRow').value;
-    let replyText = document.getElementById('resolveCustomText').value.trim();
-    if(!replyText) { showToast("يرجى كتابة رد للطالب أو اختيار رد جاهز", "error"); return; }
-    
-    let btn = document.getElementById('btnSubmitResolve');
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري الإرسال'; btn.disabled = true;
-
+    let rowIdx = document.getElementById('resolveTargetRow').value; let replyText = document.getElementById('resolveCustomText').value.trim();
+    if(!replyText) { showToast("يرجى كتابة رد", "error"); return; }
+    let btn = document.getElementById('btnSubmitResolve'); btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري الإرسال'; btn.disabled = true;
     try {
       let res = await apiCall("resolve_issue", { rowIdx: rowIdx, replyText: replyText, adminCode: activeAdminCode, adminPass: activeAdminPass });
       if(res.status === "success") {
-        let card = document.getElementById(`issue-card-${rowIdx}`);
-        card.style.opacity = '0.5';
-        setTimeout(() => { card.style.display = 'none'; }, 1000);
-        let countEl = document.getElementById('adminStatRep');
-        countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
-        closeResolveModal(); showToast("تم إرسال الرد وإغلاق المشكلة", "success");
+        let card = document.getElementById(`issue-card-${rowIdx}`); card.style.opacity = '0.5'; setTimeout(() => { card.style.display = 'none'; }, 1000);
+        let countEl = document.getElementById('adminStatRep'); countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
+        closeResolveModal(); showToast("تم إرسال الرد", "success");
       } else { showToast(res.message || "حدث خطأ.", "error"); }
     } catch(err) { showToast("خطأ اتصال.", "error"); }
     btn.innerHTML = 'إرسال الرد وإغلاق'; btn.disabled = false;
@@ -843,8 +856,7 @@
       let res = await apiCall("admin_reset", { nationalId: nid, adminCode: activeAdminCode, adminPass: activeAdminPass });
       if(res.status === "success") {
          await apiCall("resolve_issue", { rowIdx: rowIdx, replyText: "تم فك الحظر الأمني عن حسابك بناءً على إشعار النظام.", adminCode: activeAdminCode, adminPass: activeAdminPass });
-         let card = document.getElementById(`issue-card-${rowIdx}`);
-         card.style.opacity = '0.5'; setTimeout(() => { card.style.display = 'none'; }, 1000);
+         let card = document.getElementById(`issue-card-${rowIdx}`); card.style.opacity = '0.5'; setTimeout(() => { card.style.display = 'none'; }, 1000);
          let countEl = document.getElementById('adminStatRep'); countEl.innerText = Math.max(0, parseInt(countEl.innerText) - 1);
          showToast("تم فك الحظر بنجاح", "success");
       } else { showToast(res.message, "error"); btnElement.innerHTML = '<i class="fa-solid fa-unlock"></i> فك الحظر آلياً'; btnElement.disabled = false; }
@@ -854,16 +866,12 @@
   async function adminReset() {
     let targetNid = document.getElementById('adminResetNid').value.trim();
     if(!targetNid) { showToast("برجاء إدخال الرقم القومي للطالب", "error"); return; }
-    
-    let btn = document.querySelector('#screen-admin-dashboard .btn-main');
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري التنفيذ...'; btn.disabled = true;
-
+    let btn = document.querySelector('#screen-admin-dashboard .btn-main'); btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري التنفيذ...'; btn.disabled = true;
     try {
       let res = await apiCall("admin_reset", { nationalId: targetNid, adminCode: activeAdminCode, adminPass: activeAdminPass });
       btn.innerHTML = 'تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i>'; btn.disabled = false;
-      if(res.status === "success") { showToast(res.message, "success"); document.getElementById('adminResetNid').value = ""; } 
-      else { showToast(res.message, "error"); }
-    } catch(err) { btn.innerHTML = 'تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i>'; btn.disabled = false; showToast('خطأ في الاتصال', "error"); }
+      if(res.status === "success") { showToast(res.message, "success"); document.getElementById('adminResetNid').value = ""; } else { showToast(res.message, "error"); }
+    } catch(err) { btn.innerHTML = 'تنفيذ إجراء المسح <i class="fa-solid fa-triangle-exclamation"></i>'; btn.disabled = false; showToast('خطأ', "error"); }
   }
 
   function drawChart(stats) {
@@ -884,95 +892,14 @@
     if(!window.Chart) return;
     if (progressLineChartInstance) progressLineChartInstance.destroy(); 
     const ctx = document.getElementById('progressLineChart').getContext('2d');
-    
     let labels = []; let dataPoints = [];
-    semestersData.forEach(sem => {
-      let score = parseFloat(sem.score);
-      if(!isNaN(score)) { labels.push(sem.name.replace('سيمستر','س').trim()); dataPoints.push(score); }
-    });
-
+    semestersData.forEach(sem => { let score = parseFloat(sem.score); if(!isNaN(score)) { labels.push(sem.name.replace('سيمستر','س').trim()); dataPoints.push(score); } });
     if(dataPoints.length === 0) return;
-
     progressLineChartInstance = new Chart(ctx, {
       type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{ label: 'الدرجة', data: dataPoints, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', borderWidth: 3, pointBackgroundColor: '#f59e0b', pointRadius: 5, fill: true, tension: 0.3 }]
-      },
+      data: { labels: labels, datasets: [{ label: 'الدرجة', data: dataPoints, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', borderWidth: 3, pointBackgroundColor: '#f59e0b', pointRadius: 5, fill: true, tension: 0.3 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: false }, x: { grid: { display: false } } } }
     });
-  }
-
-  async function fetchCohortStatsBackground(batch) {
-    try {
-      let res = await apiCall("get_cohort_stats", { batch: batch });
-      if (res.status === "success") {
-        chartDataCache = res.stats;
-        let loadingEl = document.getElementById('cohortLoading');
-        if(loadingEl) loadingEl.remove();
-        document.getElementById('cohortChart').style.display = 'block';
-        setTimeout(() => { drawChart(res.stats); }, 200);
-      } else {
-        let loadingEl = document.getElementById('cohortLoading');
-        if(loadingEl) loadingEl.innerHTML = '<span style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i> تعذر جلب الإحصائيات</span>';
-      }
-    } catch(e) {
-      let loadingEl = document.getElementById('cohortLoading');
-      if(loadingEl) loadingEl.innerHTML = '<span style="color:var(--danger)"><i class="fa-solid fa-wifi"></i> خطأ في الاتصال</span>';
-    }
-  }
-
-  function handleResult(res) {
-    document.getElementById('resName').innerText = res.name || '-';
-    document.getElementById('resNid').innerText = res.nid || studentID;
-    document.getElementById('resBatch').innerText = res.batch || '-';
-    document.getElementById('resRank').innerText = res.rank || '-';
-
-    let totalHtml = res.total || '-';
-    if (res.totalMax && res.total !== '-') { totalHtml = `${res.total} <span style="font-size:14px; opacity:0.6">/ ${res.totalMax}</span>`; }
-    document.getElementById('resTotal').innerHTML = totalHtml;
-    
-    finalPctValue = res.percentage || '0';
-    applyDynamicTheme(finalPctValue); 
-    setTimeout(() => { animateCircularProgress(finalPctValue); }, 300);
-
-    const container = document.getElementById('semestersContainer');
-    container.innerHTML = ''; 
-    if (res.semesters && res.semesters.length > 0) {
-      res.semesters.forEach(sem => {
-        let scoreHtml = sem.score;
-        if (sem.maxScore && sem.score !== '-') { scoreHtml = `${sem.score} <span style="font-size:14px; opacity:0.6">/ ${sem.maxScore}</span>`; }
-        container.innerHTML += `<div class="sem-item"><div class="sem-header"><div class="sem-info"><div class="sem-icon"><i class="fa-solid fa-book"></i></div><span class="sem-name">${sem.name}</span></div><span class="sem-score" dir="ltr" style="display:inline-block;">${scoreHtml}</span></div></div>`;
-      });
-      lineChartDataCache = res.semesters;
-    }
-
-    if (lineChartDataCache) setTimeout(() => { drawLineChart(lineChartDataCache); }, 400);
-
-    const cohortContainer = document.getElementById('cohortChart').parentElement;
-    if (res.cohortStats) {
-      chartDataCache = res.cohortStats;
-      setTimeout(() => { drawChart(chartDataCache); }, 400);
-    } else if (res.needs_cohort_fetch) {
-      document.getElementById('cohortChart').style.display = 'none';
-      if(!document.getElementById('cohortLoading')) {
-          cohortContainer.innerHTML += '<div id="cohortLoading" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--primary); font-weight:bold; font-size:12px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحليل الدفعة...</div>';
-      }
-      fetchCohortStatsBackground(res.batch);
-    } 
-
-    document.getElementById('mainHeader').style.display = 'none'; 
-    document.getElementById('mainTopBar').style.display = 'flex'; 
-    document.getElementById('privacyBtn').style.display = 'flex';
-    document.getElementById('fabContainer').style.display = 'flex'; 
-    switchScreen('screen-result'); 
-
-    if(res.rank && parseInt(res.rank) <= 10) {
-        setTimeout(() => {
-            if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#2563eb', '#10b981'] });
-            showToast(`ألف مبروك! أنت من أوائل الدفعة (المركز الـ ${res.rank}) 🏆`, "gold", 6000);
-        }, 800);
-    }
   }
 </script>
 </body>
