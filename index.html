@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>بوابة نتائج طب طنطا</title>
   
-  <!-- 🔥 خدعة تسريع الاتصال (Preconnect) -->
   <link rel="preconnect" href="https://script.google.com">
   <link rel="preconnect" href="https://script.googleusercontent.com">
   
@@ -124,10 +123,7 @@
     .toast-msg { background: var(--card-bg); color: var(--text-dark); padding: 15px 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-right: 5px solid var(--theme-color); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; animation: slideDown 0.4s ease forwards; pointer-events: auto;}
     .toast-msg.error { border-color: var(--danger); }
     .toast-msg.success { border-color: var(--success); }
-    
-    /* 🔥 تعديل لون رسالة الأوائل عشان تبان كحلي غامق في الوضع الليلي */
     .toast-msg.gold { border-color: var(--gold); background: linear-gradient(135deg, #fff, #fffbeb); color: #0f172a !important; }
-    
     @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
 
@@ -187,7 +183,6 @@
   </header>
 
   <div id="screen-id" class="screen active auth-card">
-    <!-- 🔥 تم تعديل المسميات هنا بناءً على طلبك -->
     <div class="input-group">
       <i class="fa-solid fa-layer-group input-icon"></i>
       <select id="batchSelect" onchange="validateNID()">
@@ -398,9 +393,9 @@
 
 <script>
   // ==========================================
-  // 👇 انسخ من أول هنا وشفّره (الأكواد جاهزة)
+  // 👇 حط لينكك هنا وشفر الجافاسكريبت وارفع التحديث على جيت هاب
   // ==========================================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzN-ZrLJpyK-bX95sd7gD3GXorQXjpsXcHUpjrQ697wonsKlw9HjwNFix0uAlab1v7S/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEYedY88JbuVHs4iPL3wLtvIjM7_gjtNB8xDvNacnwOWtk-Z-b-QEOzOn1MWlerY5X/exec"; 
   const API_KEY = "TANTA_MED_2026_SECURE41TMSU";
 
   let studentID = ""; let studentBatch = ""; let authMode = ""; 
@@ -493,7 +488,6 @@
 
   function toggleFab() { document.getElementById('fabMenu').classList.toggle('open'); document.getElementById('fabMain').classList.toggle('open'); }
 
-  // 🔥 هنا مسحنا كل الخانات في صفحة الباسورد
   function logout() {
     document.getElementById('fabMenu').classList.remove('open');
     document.getElementById('fabMain').classList.remove('open');
@@ -663,7 +657,7 @@
           document.getElementById('confirmPassGroup').style.display = 'none'; switchScreen('screen-auth'); 
         }
       }
-    } catch(err) { hideSkeleton(); renderScreenOnly('screen-id'); showToast('خطأ اتصال بالسيرفر.', "error"); }
+    } catch(err) { hideSkeleton(); renderScreenOnly('screen-id'); showToast('حدث خطأ في النظام: برجاء المحاولة لاحقاً', "error"); }
   }
 
   async function step2Auth() {
@@ -689,7 +683,7 @@
       }
       else if(res.status === "error") { renderScreenOnly('screen-auth'); showToast(res.message || 'حدث خطأ غير متوقع.', "error"); }
       else handleResult(res);
-    } catch(err) { hideSkeleton(); renderScreenOnly('screen-auth'); showToast('خطأ اتصال بالسيرفر.', "error"); }
+    } catch(err) { hideSkeleton(); renderScreenOnly('screen-auth'); showToast('حدث خطأ في النظام: برجاء المحاولة لاحقاً', "error"); }
   }
 
   async function adminLogin() {
@@ -707,51 +701,73 @@
         if(res.role === "master") {
             document.getElementById('masterAdminSection').style.display = 'block';
             document.getElementById('maintenanceToggle').checked = res.isMaintenance;
-            let logsHtml = "";
-            if(res.adminLogs) {
-                res.adminLogs.forEach(l => { 
-                    let formattedDate = formatDateTime12(l.date, true);
-                    logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted); font-size:11px;">${formattedDate}</span></div>`; 
-                });
-            }
-            document.getElementById('adminLogsContainer').innerHTML = logsHtml;
+            document.getElementById('adminLogsContainer').innerHTML = '<div style="text-align:center; padding:10px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري سحب السجلات...</div>';
         } else { document.getElementById('masterAdminSection').style.display = 'none'; }
 
         document.getElementById('adminBadgeName').innerHTML = res.role === "master" ? `<i class="fa-solid fa-crown" style="color:var(--gold)"></i> المدير العام` : "المشرف: " + res.adminName;
-        document.getElementById('adminStatTotal').innerText = res.stats.total;
-        document.getElementById('adminStatReg').innerText = res.stats.registered;
-        document.getElementById('adminStatRep').innerText = res.stats.reports;
         
-        let reportsHtml = "";
-        if(res.issues && res.issues.length > 0) {
-          res.issues.forEach(issue => {
-            let isAutoBan = issue.issue.includes("محظور أمنياً");
-            let btnAction = isAutoBan 
-              ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>`
-              : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`;
-            
-            let formattedDate = formatDateTime12(issue.date, false);
-
-            reportsHtml += `
-              <div class="issue-card" id="issue-card-${issue.rowIdx}">
-                <p><b>👤 ${issue.name}</b> (${issue.nid})</p>
-                ${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}
-                <div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                  <span style="font-size:11px; color:var(--text-muted);">${formattedDate}</span>
-                  ${btnAction}
-                </div>
-              </div>`;
-          });
-        } else { reportsHtml = `<div style="text-align:center; padding:20px; color:var(--success); font-weight:bold;"><i class="fa-solid fa-face-smile"></i> لا توجد شكاوى معلقة!</div>`; }
-        document.getElementById('adminReportsContainer').innerHTML = reportsHtml;
+        document.getElementById('adminStatTotal').innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:16px; color:var(--text-muted)"></i>';
+        document.getElementById('adminStatReg').innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:16px; color:var(--text-muted)"></i>';
+        document.getElementById('adminStatRep').innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:16px; color:var(--text-muted)"></i>';
+        document.getElementById('adminReportsContainer').innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري سحب الشكاوى...</div>';
 
         document.getElementById('mainHeader').style.display = 'none';
         document.getElementById('mainTopBar').style.display = 'none';
         document.getElementById('fabContainer').style.display = 'flex';
         switchScreen('screen-admin-dashboard');
+
+        fetchAdminData();
+
       } else { hideSkeleton(); renderScreenOnly('screen-admin-login'); showToast(res.message, "error"); activeAdminCode = ""; activeAdminPass = ""; }
-    } catch(err) { hideSkeleton(); renderScreenOnly('screen-admin-login'); showToast('خطأ في الاتصال بالخادم', "error"); }
+    } catch(err) { 
+      hideSkeleton(); 
+      renderScreenOnly('screen-admin-login'); 
+      showToast('يجب رفع تحديث الواجهة (HTML) ليتطابق مع السيرفر!', "error"); 
+    }
+  }
+
+  async function fetchAdminData() {
+    try {
+      let res = await apiCall("admin_get_data", { adminCode: activeAdminCode, adminPass: activeAdminPass });
+      if(res.status === "success") {
+          document.getElementById('adminStatTotal').innerText = res.stats.total;
+          document.getElementById('adminStatReg').innerText = res.stats.registered;
+          document.getElementById('adminStatRep').innerText = res.stats.reports;
+
+          let logsHtml = "";
+          if(res.adminLogs && res.adminLogs.length > 0) {
+              res.adminLogs.forEach(l => { 
+                  let formattedDate = formatDateTime12(l.date, true);
+                  logsHtml += `<div class="log-item"><span><b>${l.user}:</b> ${l.action}</span><span style="color:var(--text-muted); font-size:11px;">${formattedDate}</span></div>`; 
+              });
+          } else { logsHtml = "<div style='text-align:center; font-size:12px; color:var(--text-muted);'>لا توجد سجلات حديثة</div>"; }
+          document.getElementById('adminLogsContainer').innerHTML = logsHtml;
+          
+          let reportsHtml = "";
+          if(res.issues && res.issues.length > 0) {
+            res.issues.forEach(issue => {
+              let isAutoBan = issue.issue.includes("محظور أمنياً");
+              let btnAction = isAutoBan 
+                ? `<button class="resolve-btn" style="background:var(--success)" onclick="adminResetDirect('${issue.nid}', ${issue.rowIdx}, this)"><i class="fa-solid fa-unlock"></i> فك الحظر آلياً</button>`
+                : `<button class="resolve-btn" onclick="openResolveModal(${issue.rowIdx})"><i class="fa-solid fa-reply"></i> رد وحل المشكلة</button>`;
+              
+              let formattedDate = formatDateTime12(issue.date, false);
+
+              reportsHtml += `
+                <div class="issue-card" id="issue-card-${issue.rowIdx}">
+                  <p><b>👤 ${issue.name}</b> (${issue.nid})</p>
+                  ${issue.phone !== "-" ? `<p><i class="fa-solid fa-phone"></i> ${issue.phone}</p>` : ''}
+                  <div class="issue-text" style="${isAutoBan ? 'color:var(--danger)' : ''}">${issue.issue}</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                    <span style="font-size:11px; color:var(--text-muted);">${formattedDate}</span>
+                    ${btnAction}
+                  </div>
+                </div>`;
+            });
+          } else { reportsHtml = `<div style="text-align:center; padding:20px; color:var(--success); font-weight:bold;"><i class="fa-solid fa-face-smile"></i> لا توجد شكاوى معلقة!</div>`; }
+          document.getElementById('adminReportsContainer').innerHTML = reportsHtml;
+      }
+    } catch(e) {}
   }
 
   async function toggleMaintenance() {
