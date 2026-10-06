@@ -347,22 +347,93 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8Xa77sif0ZvGGiy3Wp
     }
   }
 
-// 📊 تعديل مسار الإحصائيات عشان يشتغل على كل متصفحات الموبايل
+// 📊 1. دالة عرض النتيجة (معدلة لتجنب أخطاء الشاشة المخفية)
   function handleFirebaseResult(data) {
-    hideSkeleton(); document.getElementById('resName').innerText = data.name || '-'; document.getElementById('resNid').innerText = studentID; document.getElementById('resBatch').innerText = studentBatch; document.getElementById('resRank').innerText = data.rank || '-'; let totalHtml = data.total || '-'; document.getElementById('resTotal').innerHTML = totalHtml; finalPctValue = data.percentage || '0'; applyDynamicTheme(finalPctValue); setTimeout(() => { animateCircularProgress(finalPctValue); }, 300);
-    const container = document.getElementById('semestersContainer'); container.innerHTML = ''; 
+    hideSkeleton(); 
+    document.getElementById('resName').innerText = data.name || '-'; 
+    document.getElementById('resNid').innerText = studentID; 
+    document.getElementById('resBatch').innerText = studentBatch; 
+    document.getElementById('resRank').innerText = data.rank || '-'; 
+    let totalHtml = data.total || '-'; 
+    document.getElementById('resTotal').innerHTML = totalHtml; 
+    finalPctValue = data.percentage || '0'; 
+    applyDynamicTheme(finalPctValue); 
+    setTimeout(() => { animateCircularProgress(finalPctValue); }, 300);
+
+    const container = document.getElementById('semestersContainer'); 
+    container.innerHTML = ''; 
+    if (data.semesters && data.semesters.length > 0) { 
+      data.semesters.forEach(sem => { 
+        let scoreHtml = sem.score; 
+        if (sem.max && sem.score !== '-') { scoreHtml = `${sem.score} <span style="font-size:14px; opacity:0.6">/ ${sem.max}</span>`; } 
+        // استخدام insertAdjacentHTML بيمنع تدمير الشاشة ومسح الـ Canvas
+        container.insertAdjacentHTML('beforeend', `<div class="sem-item"><div class="sem-header"><div class="sem-info"><div class="sem-icon"><i class="fa-solid fa-book"></i></div><span class="sem-name">${sem.name}</span></div><span class="sem-score" dir="ltr" style="display:inline-block;">${scoreHtml}</span></div></div>`); 
+      }); 
+    }
+
+    // 🔥 إظهار الشاشة (أولاً) عشان الرسم البياني يقدر يقرأ الأبعاد الصح
+    document.getElementById('mainHeader').style.display = 'none'; 
+    document.getElementById('mainTopBar').style.display = 'flex'; 
+    document.getElementById('privacyBtn').style.display = 'flex'; 
+    document.getElementById('fabContainer').style.display = 'flex'; 
+    switchScreen('screen-result'); 
+
+    // تأخير الرسم البياني نصف ثانية لحد ما الشاشة تفتح بالكامل
+    if (data.semesters && data.semesters.length > 0) {
+      setTimeout(() => { drawLineChart(data.semesters); }, 500); 
+    }
+
+    document.getElementById('cohortChart').style.display = 'none'; 
+    const cohortContainer = document.getElementById('cohortChart').parentElement; 
+    if(!document.getElementById('cohortLoading')) { 
+      cohortContainer.insertAdjacentHTML('beforeend', '<div id="cohortLoading" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--primary); font-weight:bold; font-size:12px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل الإحصائيات...</div>'); 
+    }
+
+    fetch(`${FIREBASE_URL}/stats/${encodeURIComponent(studentBatch)}.json`).then(r=>r.json()).then(stats=>{ 
+      if (stats) { 
+        let loader = document.getElementById('cohortLoading');
+        if(loader) loader.remove();
+        document.getElementById('cohortChart').style.display = 'block'; 
+        setTimeout(() => { drawChart(stats); }, 500); 
+      } 
+    }).catch(e=>{});
+
+    // 🎉 إصلاح الاحتفال بالأوائل (اشتغل سواء الترتيب رقم أو كلمة عربي)
+    let rankStr = data.rank ? data.rank.toString() : "";
+    let studentRank = parseInt(rankStr.replace(/[^\d]/g, '')); // استخراج الرقم فقط
+    let isTop = (!isNaN(studentRank) && studentRank <= 15) || rankStr.includes('أول') || rankStr.includes('ثان') || rankStr.includes('ثالث');
     
-    // رسم السجل الأكاديمي والرسم البياني الخطي
-    if (data.semesters && data.semesters.length > 0) { data.semesters.forEach(sem => { let scoreHtml = sem.score; if (sem.max && sem.score !== '-') { scoreHtml = `${sem.score} <span style="font-size:14px; opacity:0.6">/ ${sem.max}</span>`; } container.innerHTML += `<div class="sem-item"><div class="sem-header"><div class="sem-info"><div class="sem-icon"><i class="fa-solid fa-book"></i></div><span class="sem-name">${sem.name}</span></div><span class="sem-score" dir="ltr" style="display:inline-block;">${scoreHtml}</span></div></div>`; }); setTimeout(() => { drawLineChart(data.semesters); }, 300); }
-    
-    document.getElementById('cohortChart').style.display = 'none'; const cohortContainer = document.getElementById('cohortChart').parentElement; if(!document.getElementById('cohortLoading')) { cohortContainer.innerHTML += '<div id="cohortLoading" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--primary); font-weight:bold; font-size:12px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل الإحصائيات...</div>'; }
-    
-    // 👈 السطر السحري اللي بيظبط الروابط العربي
-    fetch(`${FIREBASE_URL}/stats/${encodeURIComponent(studentBatch)}.json`).then(r=>r.json()).then(stats=>{ if (stats) { document.getElementById('cohortLoading')?.remove(); document.getElementById('cohortChart').style.display = 'block'; setTimeout(() => { drawChart(stats); }, 200); } }).catch(e=>{});
-    
-    document.getElementById('mainHeader').style.display = 'none'; document.getElementById('mainTopBar').style.display = 'flex'; document.getElementById('privacyBtn').style.display = 'flex'; document.getElementById('fabContainer').style.display = 'flex'; switchScreen('screen-result'); 
+    if(isTop) { 
+      setTimeout(() => { 
+        if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#2563eb', '#10b981'], zIndex: 9999 }); 
+        showToast(`ألف مبروك! أنت من أوائل الدفعة 🏆`, "gold", 6000); 
+      }, 1200); 
+    }
   }
 
+  // 📈 2. دالة رسم الإحصائيات 
+  function drawChart(stats) { 
+    if(!window.Chart) return; 
+    if (cohortChartInstance) cohortChartInstance.destroy(); 
+    const canvas = document.getElementById('cohortChart');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d'); 
+    cohortChartInstance = new Chart(ctx, { type: 'bar', data: { labels: ['+95', '90-94', '85-89', '80-84', '75-79', '70-74', '65-69', '60-64', '<60'], datasets: [{ label: 'الطلاب', data: [stats.p95, stats.p90, stats.p85, stats.p80, stats.p75, stats.p70, stats.p65, stats.p60, stats.pLow], backgroundColor: ['#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#f59e0b', '#ef4444'], borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } } } }); 
+  }
+
+  // 📉 3. دالة رسم تطور المستوى
+  function drawLineChart(semestersData) { 
+    if(!window.Chart) return; 
+    if (progressLineChartInstance) progressLineChartInstance.destroy(); 
+    const canvas = document.getElementById('progressLineChart');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d'); 
+    let labels = []; let dataPoints = []; 
+    semestersData.forEach(sem => { let score = parseFloat(sem.score); if(!isNaN(score)) { labels.push(sem.name.replace('سيمستر','س').trim()); dataPoints.push(score); } }); 
+    if(dataPoints.length === 0) return; 
+    progressLineChartInstance = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'الدرجة', data: dataPoints, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', borderWidth: 3, pointBackgroundColor: '#f59e0b', pointRadius: 5, fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: false }, x: { grid: { display: false } } } } }); 
+  }
+  
   // 👑 تسجيل دخول الأدمن اللامركزي (مباشرة من فايربيز بسرعة 0.05 ثانية)
   async function adminLogin(e) {
     if(e) e.preventDefault();
